@@ -1,0 +1,96 @@
+# Visual Studio specific files
+.vs/
+*.suo
+*.user
+*.userprefs
+*.ncb
+*.aps
+*.lck
+*.vshost.log
+*.opendb
+*.tlog
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+[Bb]in/
+[Oo]bj/
+[Tt]emp/
+*.log
+*.pdb
+*.dll
+*.exe
+*.int
+*.exp
+*.lib
+*.obj
+*.o
+*.pch
+*.ipch
+*.com
+*.ilk
+*.idb
+*.res
+*.sbr
+*.bsc
+*.map
+*.dep
+*.bak
+*.trg
+*.res
+*.vmdk
+*.vdi
+*.vbox
+*.iso
+*.dmg
+*.bin
+*.out
+*.ncb
+*.psess
+*.vsp
+*.eht
+
+# NuGet packages
+packages/
+*.nupkg
+!packages.config # Keep this if you use PackageReference in newer .NET projects
+
+# ReSharper files
+*.DotSettings
+*.DotSettings.user
+
+# Rider files
+.idea/
+
+# Node.js and npm (if you're using front-end tooling like npm/webpack)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# xUnit.net test files
+*.xunit.runner.json
+
+# Azure Tools
+*.publishsettings
+*.sublime-project
+*.sublime-workspace
+
+# User secrets (for sensitive configuration data)
+appsettings.Development.json
+appsettings.Production.json # Be careful, usually committed, but if sensitive data is there, ignore.
+appsettings.json.user
+secrets.json
+
+# IIS Express files
+.vs/config/applicationhost.config
+
+# Miscellaneous
+Thumbs.db
+Desktop.ini
+Icon?
+
+# If you're publishing directly from Visual Studio
+PublishProfile/
+
+# Generated files for Entity Framework migrations
+Migrations/
