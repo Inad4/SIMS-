@@ -5,6 +5,8 @@ VisualStudioVersion = 17.13.35919.96 d17.13
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SIMS_BACKEND", "SIMS_BACKEND\SIMS_BACKEND.csproj", "{6BAC877F-792D-4077-89A5-3D103FA2D9C6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedModels", "SharedModels\SharedModels.csproj", "{9FF87B21-54F2-4049-9240-C014276817CE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,14 @@ Global
 		{6BAC877F-792D-4077-89A5-3D103FA2D9C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6BAC877F-792D-4077-89A5-3D103FA2D9C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6BAC877F-792D-4077-89A5-3D103FA2D9C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A1F740B-6D8A-4E7E-A385-60C547496154}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A1F740B-6D8A-4E7E-A385-60C547496154}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A1F740B-6D8A-4E7E-A385-60C547496154}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A1F740B-6D8A-4E7E-A385-60C547496154}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9FF87B21-54F2-4049-9240-C014276817CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9FF87B21-54F2-4049-9240-C014276817CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9FF87B21-54F2-4049-9240-C014276817CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9FF87B21-54F2-4049-9240-C014276817CE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

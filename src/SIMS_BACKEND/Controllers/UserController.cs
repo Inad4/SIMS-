@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using SIMS_BACKEND.Models;
-using SIMS_BACKEND.Data;
 using Microsoft.EntityFrameworkCore;
+
+using SharedModels;
+
 
 namespace SIMS_BACKEND.Controllers
 {
@@ -10,9 +11,9 @@ namespace SIMS_BACKEND.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly ApiContext _context;
+        private readonly SharedDbContext _context;
 
-        public UserController(ApiContext context)
+        public UserController(SharedDbContext context)
         {
             _context = context;
         }
