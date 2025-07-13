@@ -2,9 +2,10 @@ namespace SharedModels;
 
 public enum EquipmentCondition
 {
-    WORKING,
-    BROKEN,
-    IN_REPAIR
+    AVAILABLE,
+    UNDER_REPAIR,
+    CHECKED_OUT,
+    RETIRED,
 }
 
 public class Equipment
@@ -14,6 +15,8 @@ public class Equipment
     public int Room { get; set; }
     public string PathToPhoto { get; set; } = null!;
     public EquipmentCondition Condition { get; set; }
+    public string Type { get; set; } = null!;
+    public string SerialNumber { get; set; } = null!;
 
     public DateTime? UpdatedAt { get; set; }
     public DateTime? CreatedAt { get; set; }
