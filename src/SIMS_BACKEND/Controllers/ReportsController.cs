@@ -17,8 +17,6 @@ public class ReportsController : ControllerBase
     }
 
   
-
-    // GET: api/reports/history
     [HttpGet("history")]
     public async Task<ActionResult> GetHistoryReport()
     {
@@ -31,7 +29,6 @@ public class ReportsController : ControllerBase
         return Ok(report);
     }
 
-    // GET: api/reports/export
     [HttpGet("export")]
     public async Task<ActionResult> ExportReport()
     {

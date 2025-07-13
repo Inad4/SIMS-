@@ -20,7 +20,6 @@ public class RequestsController : ControllerBase
         _userManager = userManager;
     }
 
-    // POST: api/request (Request equipment - User only)
     [HttpPost]
     [Authorize(Policy = "UserOnly")]
     public async Task<ActionResult<Request>> CreateRequest([FromBody] CreateRequestDto requestDto)
@@ -53,7 +52,6 @@ public class RequestsController : ControllerBase
 
         _context.Requests.Add(request);
 
-        // Update equipment status
         foreach (var item in equipment)
         {
             item.Condition = EquipmentCondition.CHECKED_OUT;
@@ -64,7 +62,6 @@ public class RequestsController : ControllerBase
         return CreatedAtAction(nameof(Request), new { id = request.Id }, request);
     }
 
-    // GET: api/requests/my (Get user's requests)
     [HttpGet("my")]
     [Authorize(Policy = "UserOnly")]
     public async Task<ActionResult<IEnumerable<Request>>> GetMyRequests()
@@ -76,7 +73,6 @@ public class RequestsController : ControllerBase
             .ToListAsync();
     }
 
-    // GET: api/requests/pending (Get pending requests - Admin only)
     [HttpGet("pending")]
     [Authorize(Policy = "AdminOnly")]
     public async Task<ActionResult<IEnumerable<Request>>> GetPendingRequests()
@@ -88,7 +84,6 @@ public class RequestsController : ControllerBase
             .ToListAsync();
     }
 
-    // PUT: api/requests/5/approve (Approve request - Admin only)
     [HttpPut("{id}/approve")]
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> ApproveRequest(int id)
@@ -107,8 +102,7 @@ public class RequestsController : ControllerBase
 
         return NoContent();
     }
-
-    // PUT: api/requests/5/reject (Reject request - Admin only)
+    
     [HttpPut("{id}/reject")]
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> RejectRequest(int id, [FromBody] string? rejectionReason)
@@ -125,7 +119,7 @@ public class RequestsController : ControllerBase
         request.Status = RequestStatus.REJECTED;
         request.Message = $"REJECTED: {rejectionReason ?? "No reason provided"}. Original request: {request.Message}";
 
-        // Return equipment to available status
+     
         foreach (var equipment in request.Equipment)
         {
             equipment.Condition = EquipmentCondition.AVAILABLE;
@@ -136,7 +130,7 @@ public class RequestsController : ControllerBase
         return NoContent();
     }
 
-    // PUT: api/requests/5/return (Return equipment - Admin only)
+
     [HttpPut("{id}/return")]
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> ReturnRequest(int id, [FromBody] EquipmentCondition condition)
@@ -153,7 +147,6 @@ public class RequestsController : ControllerBase
         request.Status = RequestStatus.RETURNED;
         request.ReturnedAt = DateTime.UtcNow;
 
-        // Update equipment status and condition
         foreach (var equipment in request.Equipment)
         {
             equipment.Condition = condition == EquipmentCondition.UNDER_REPAIR
