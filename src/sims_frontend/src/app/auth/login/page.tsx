@@ -11,15 +11,29 @@ export default function LoginPage() {
     const [errorMessage, setErrorMessage] = useState('');
     const router = useRouter();
 
-    let handleLogin = () => {
+    let handleLogin = async () => {
         setErrorMessage("");
-        // Send API request to the backend with email and password
-        let loginSuccessful = email != "error@example.com";
-        if (!loginSuccessful){
-            setErrorMessage("Incorrect login credentials");
-            return;
+
+        try {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                setErrorMessage(errorData.message || "Login failed. Please check your credentials.");
+                return;
+            }
+
+            router.replace("/dashboard");
+        } catch (error) {
+            console.error('Login error:', error);
+            setErrorMessage("An unexpected error occurred. Please try again.");
         }
-        router.replace("/dashboard");
     }
 
     return (
