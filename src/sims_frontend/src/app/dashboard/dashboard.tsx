@@ -1,29 +1,19 @@
 'use client'
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { UserPayload } from "@/types/user";
 import { Equipment, EquipmentCondition } from "@/types/equipment";
 import React, { useState, useEffect, useMemo, useCallback } from "react"; // Added useCallback and useMemo
-
-
-const getConditionColor = (condition: EquipmentCondition): string => {
-    switch (condition) {
-        case EquipmentCondition.AVAILABLE:
-            return 'bg-green-100 text-green-800';
-        case EquipmentCondition.UNDER_REPAIR:
-            return 'bg-yellow-100 text-yellow-800';
-        case EquipmentCondition.CHECKED_OUT:
-            return 'bg-blue-100 text-blue-800';
-        case EquipmentCondition.RETIRED:
-            return 'bg-red-100 text-red-800';
-        default:
-            return 'bg-gray-100 text-gray-800';
-    }
-};
+import { getConditionColor } from "@/utils/utils";
 
 export default function DashboardContent({ user }: { user: UserPayload | null }) {
     const [allEquipment, setAllEquipment] = useState<Equipment[]>([]);
-    const [searchTerm, setSearchTerm] = useState<string>(''); // State for the search input value
+
+    const searchParams = useSearchParams();
+    const initialSearchTerm = searchParams.get('search') || '';
+
+    const [searchTerm, setSearchTerm] = useState<string>(initialSearchTerm); // State for the search input value
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
