@@ -22,6 +22,12 @@ export default function DashboardContent({ user }: { user: UserPayload | null })
     const [selectedType, setSelectedType] = useState<string | null>(null);
     const [selectedCondition, setSelectedCondition] = useState<EquipmentCondition | null>(null);
 
+    // --- New States for Select Mode ---
+    // isSelectMode now primarily controls whether cards can be clicked for selection
+    const [isSelectMode, setIsSelectMode] = useState<boolean>(false);
+    const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<number[]>([]);
+    // --- End New States ---
+
     const router = useRouter();
 
     useEffect(() => {
@@ -92,6 +98,12 @@ export default function DashboardContent({ user }: { user: UserPayload | null })
         return currentFilteredList;
     }, [allEquipment, searchTerm, selectedType, selectedCondition]);
 
+    // Derived state for selected equipment objects
+    const selectedEquipment = useMemo(() => {
+        return allEquipment.filter(item => selectedEquipmentIds.includes(item.id));
+    }, [allEquipment, selectedEquipmentIds]);
+
+
     const handleSearchInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(event.target.value);
     }, []);
@@ -138,6 +150,47 @@ export default function DashboardContent({ user }: { user: UserPayload | null })
         applyFilters();
     }, [applyFilters]);
 
+    // --- Callbacks for Select Mode ---
+    const handleToggleSelectMode = useCallback(() => {
+        setIsSelectMode(prev => !prev);
+        // Don't clear selections immediately, allow users to continue building their list
+        // setSelectedEquipmentIds([]);
+        setIsFilterPanelOpen(false); // Close filter panel if open
+    }, []);
+
+    const handleSelectEquipment = useCallback((id: number) => {
+        // Only allow selection if the item is AVAILABLE
+        const item = allEquipment.find(eq => eq.id === id);
+        if (item && item.condition === EquipmentCondition.AVAILABLE) {
+            setSelectedEquipmentIds(prev =>
+                prev.includes(id)
+                    ? prev.filter(selectedId => selectedId !== id) // Deselect
+                    : [...prev, id] // Select
+            );
+        } else if (item) {
+            alert(`Equipment "${item.name}" is ${item.condition.replace(/_/g, ' ')} and cannot be selected for request.`);
+        }
+    }, [allEquipment]);
+
+    const handleRemoveSelectedEquipment = useCallback((id: number) => {
+        setSelectedEquipmentIds(prev => prev.filter(selectedId => selectedId !== id));
+    }, []);
+
+    const handleRequestSelected = useCallback(() => {
+        // Here you would send the selectedEquipmentIds to your backend for a request
+        console.log("Requesting equipment with IDs:", selectedEquipmentIds);
+        alert(`Requested equipment IDs: ${selectedEquipmentIds.join(', ')}`);
+        setIsSelectMode(false); // Exit select mode after request
+        setSelectedEquipmentIds([]); // Clear selections
+        // Optionally, show a success message or trigger a refetch of equipment data
+    }, [selectedEquipmentIds]);
+
+    const handleCancelSelection = useCallback(() => {
+        setIsSelectMode(false);
+        setSelectedEquipmentIds([]);
+    }, []);
+    // --- End Callbacks ---
+
 
     if (loading) {
         return (
@@ -158,82 +211,171 @@ export default function DashboardContent({ user }: { user: UserPayload | null })
     return (
         <>
             <div className={`transition-all duration-300 ease-in-out ${isFilterPanelOpen ? 'blur-sm brightness-50 pointer-events-none' : ''}`}>
-                <form className="flex items-center max-w-lg mx-auto mb-8" onSubmit={handleFormSubmit}>
-                    <div className="relative w-full">
-                        <input
-                            type="text"
-                            id="search"
-                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                            placeholder="Search equipment..."
-                            value={searchTerm}
-                            onChange={handleSearchInputChange}
-                        />
-                        <button
-                            type="button"
-                            className="absolute inset-y-0 start-0 flex items-center ps-3"
-                            onClick={toggleFilterPanel}
-                            title="Open Filters"
+                <div className="flex justify-between items-center max-w-lg mx-auto mb-8">
+                    {/* Search and Filter Form */}
+                    <form className="flex items-center w-full" onSubmit={handleFormSubmit}>
+                        <div className="relative w-full">
+                            <input
+                                type="text"
+                                id="search"
+                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                placeholder="Search equipment..."
+                                value={searchTerm}
+                                onChange={handleSearchInputChange}
+                                // Not disabled anymore, so search/filter works concurrently
+                            />
+                            <button
+                                type="button"
+                                className="absolute inset-y-0 start-0 flex items-center ps-3"
+                                onClick={toggleFilterPanel}
+                                title="Open Filters"
+                                // Not disabled anymore
+                            >
+                                <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" strokeLinecap="round" strokeWidth="2" d="M6 4v10m0 0a2 2 0 1 0 0 4m0-4a2 2 0 1 1 0 4m0 0v2m6-16v2m0 0a2 2 0 1 0 0 4m0-4a2 2 0 1 1 0 4m0 0v10m6-16v10m0 0a2 2 0 1 0 0 4m0-4a2 2 0 1 1 0 4m0 0v2"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <button type="submit" className="inline-flex items-center py-2.5 px-3 ms-2 text-sm font-medium text-white bg-blue-700 rounded-lg border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                            // Not disabled anymore
                         >
-                            <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                <path stroke="currentColor" strokeLinecap="round" strokeWidth="2" d="M6 4v10m0 0a2 2 0 1 0 0 4m0-4a2 2 0 1 1 0 4m0 0v2m6-16v2m0 0a2 2 0 1 0 0 4m0-4a2 2 0 1 1 0 4m0 0v10m6-16v10m0 0a2 2 0 1 0 0 4m0-4a2 2 0 1 1 0 4m0 0v2"/>
-                            </svg>
+                            <svg className="w-4 h-4 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+                            </svg>Search
                         </button>
-                    </div>
-                    <button type="submit" className="inline-flex items-center py-2.5 px-3 ms-2 text-sm font-medium text-white bg-blue-700 rounded-lg border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                        <svg className="w-4 h-4 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
-                        </svg>Search
+                    </form>
+                </div>
+
+                {/* --- Main Request Button (Toggles Selection Mode) --- */}
+                <div className="flex justify-center max-w-lg mx-auto mb-8 space-x-4">
+                    <button
+                        onClick={handleToggleSelectMode}
+                        className={`px-6 py-2 rounded-lg shadow-md transition-colors duration-200
+                                ${isSelectMode ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}
+                                text-white`}
+                    >
+                        {isSelectMode ? 'Exit Selection Mode' : 'Select Equipment for Request'}
                     </button>
-                </form>
+                </div>
+
+                {/* --- Selected Items Section (Visible only when items are selected) --- */}
+                {selectedEquipment.length > 0 && (
+                    <div className="container mx-auto p-4 bg-yellow-50 dark:bg-yellow-950 shadow-md rounded-lg mb-8 border border-yellow-200 dark:border-yellow-800">
+                        <h2 className="text-xl font-bold text-yellow-800 dark:text-yellow-200 mb-4">
+                            Selected Items ({selectedEquipment.length})
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                            {selectedEquipment.map((equipment) => (
+                                <div
+                                    key={`selected-${equipment.id}`}
+                                    className="flex items-center justify-between p-3 bg-yellow-100 dark:bg-yellow-900 rounded-md shadow-sm border border-yellow-300 dark:border-yellow-700"
+                                >
+                                    <div className="flex items-center">
+                                        <img
+                                            src={equipment.pathToPhoto}
+                                            alt={equipment.name}
+                                            className="w-10 h-10 object-cover rounded-full mr-3"
+                                        />
+                                        <div>
+                                            <p className="font-semibold text-yellow-900 dark:text-yellow-100">{equipment.name}</p>
+                                            <p className="text-sm text-yellow-700 dark:text-yellow-300">{equipment.serialNumber}</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => handleRemoveSelectedEquipment(equipment.id)}
+                                        className="p-1 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200"
+                                        title="Remove from selection"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="flex justify-end space-x-4 pt-4 border-t border-yellow-200 dark:border-yellow-800">
+                            <button
+                                onClick={handleCancelSelection}
+                                className="px-6 py-2 bg-gray-400 text-white rounded-lg shadow-md hover:bg-gray-500 transition-colors duration-200"
+                            >
+                                Clear All Selections
+                            </button>
+                            <button
+                                onClick={handleRequestSelected}
+                                disabled={selectedEquipmentIds.length === 0}
+                                className={`px-6 py-2 rounded-lg shadow-md transition-colors duration-200
+                                    ${selectedEquipmentIds.length > 0
+                                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                        : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                                    }`}
+                            >
+                                Request Selected ({selectedEquipmentIds.length})
+                            </button>
+                        </div>
+                    </div>
+                )}
+                {/* --- End Selected Items Section --- */}
+
 
                 <div className="container mx-auto p-4 bg-white dark:bg-gray-800 shadow-md rounded-lg mt-8">
                     {filteredEquipment.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {filteredEquipment.map((equipment) => (
-                                <Link key={equipment.id} href={`/equipment/${equipment.id}`} passHref>
-                                    <div
-                                        className="block bg-gray-50 dark:bg-gray-700 p-6 rounded-lg shadow-sm
-                                                hover:shadow-md transition-shadow duration-200
-                                                flex flex-col items-center text-center
-                                                cursor-pointer group hover:bg-gray-100 dark:hover:bg-gray-600"
+                                <div
+                                    key={equipment.id}
+                                    // Use a regular div and handle click explicitly
+                                    onClick={() => isSelectMode ? handleSelectEquipment(equipment.id) : router.push(`/equipment/${equipment.id}`)}
+                                    className={`block bg-gray-50 dark:bg-gray-700 p-6 rounded-lg shadow-sm
+                                               hover:shadow-md transition-shadow duration-200
+                                               flex flex-col items-center text-center
+                                               ${isSelectMode ? 'cursor-pointer' : 'cursor-pointer'}
+                                               ${selectedEquipmentIds.includes(equipment.id)
+                                                ? 'border-4 border-blue-500 ring-2 ring-blue-300' // Selected style
+                                                : (isSelectMode ? 'border-2 border-gray-300 dark:border-gray-600 hover:border-blue-300' : '') // Unselected style in select mode
+                                               }
+                                               group hover:bg-gray-100 dark:hover:bg-gray-600`}
+                                >
+                                    <img
+                                        src={equipment.pathToPhoto}
+                                        alt={equipment.name}
+                                        className="w-32 h-32 object-cover rounded-full mb-4 border-2 border-gray-300 dark:border-gray-600
+                                                   group-hover:border-blue-500 transition-colors duration-200"
+                                    />
+                                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-700 dark:group-hover:text-blue-300">
+                                        {equipment.name}
+                                    </h2>
+                                    <p className="text-gray-700 dark:text-gray-300 mb-1">
+                                        Type: {equipment.type}
+                                    </p>
+                                    <p className="text-gray-700 dark:text-gray-300 mb-1">
+                                        Serial: {equipment.serialNumber}
+                                    </p>
+                                    <p className="text-gray-700 dark:text-gray-300 mb-1">
+                                        Room: {equipment.room}
+                                    </p>
+                                    <span
+                                        className={`px-3 py-1 rounded-full text-xs font-medium mt-3 ${getConditionColor(
+                                            equipment.condition
+                                        )}`}
                                     >
-                                        <img
-                                            src={equipment.pathToPhoto}
-                                            alt={equipment.name}
-                                            className="w-32 h-32 object-cover rounded-full mb-4 border-2 border-gray-300 dark:border-gray-600
-                                                    group-hover:border-blue-500 transition-colors duration-200"
-                                        />
-                                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-700 dark:group-hover:text-blue-300">
-                                            {equipment.name}
-                                        </h2>
-                                        <p className="text-gray-700 dark:text-gray-300 mb-1">
-                                            Type: {equipment.type}
+                                        {equipment.condition.replace(/_/g, ' ')}
+                                    </span>
+                                    {equipment.updatedAt && (
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                            Updated: {new Date(equipment.updatedAt).toLocaleDateString()}
                                         </p>
-                                        <p className="text-gray-700 dark:text-gray-300 mb-1">
-                                            Serial: {equipment.serialNumber}
+                                    )}
+                                    {equipment.createdAt && (
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                                            Created: {new Date(equipment.createdAt).toLocaleDateString()}
                                         </p>
-                                        <p className="text-gray-700 dark:text-gray-300 mb-1">
-                                            Room: {equipment.room}
+                                    )}
+                                    {isSelectMode && equipment.condition !== EquipmentCondition.AVAILABLE && (
+                                        <p className="text-xs text-red-500 dark:text-red-400 mt-2 font-bold">
+                                            ({equipment.condition.replace(/_/g, ' ')}) - Cannot Select
                                         </p>
-                                        <span
-                                            className={`px-3 py-1 rounded-full text-xs font-medium mt-3 ${getConditionColor(
-                                                equipment.condition
-                                            )}`}
-                                        >
-                                            {equipment.condition.replace(/_/g, ' ')}
-                                        </span>
-                                        {equipment.updatedAt && (
-                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                                                Updated: {new Date(equipment.updatedAt).toLocaleDateString()}
-                                            </p>
-                                        )}
-                                        {equipment.createdAt && (
-                                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                                                Created: {new Date(equipment.createdAt).toLocaleDateString()}
-                                            </p>
-                                        )}
-                                    </div>
-                                </Link>
+                                    )}
+                                </div>
                             ))}
                         </div>
                     ) : (
@@ -293,7 +435,7 @@ export default function DashboardContent({ user }: { user: UserPayload | null })
                                 onChange={handleConditionChange}
                             >
                                 <option value="">All Conditions</option>
-                                {Object.values(EquipmentCondition).map(condition => (
+                                {allConditions.map(condition => (
                                     <option key={condition} value={condition}>
                                         {condition.replace(/_/g, ' ')}
                                     </option>
