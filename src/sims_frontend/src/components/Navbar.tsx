@@ -3,11 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-interface UserPayload {
-    userId: string;
-}
+import { UserPayload } from "@/types/user";
 
-export default async function Navbar({ initialUser }: { initialUser: UserPayload }) {
+export default function Navbar({ initialUser }: { initialUser: UserPayload }) {
     const [currentUser, setCurrentUser] = useState<UserPayload | null>(initialUser);
     //const router = useRouter();
 
@@ -97,5 +95,5 @@ export default async function Navbar({ initialUser }: { initialUser: UserPayload
           </div>
           </div>
         </nav>
-    );
-}
+    )
+  }

@@ -4,11 +4,10 @@ import { jwtVerify } from 'jose';
 import { redirect } from 'next/navigation';
 import DashboardContent from './dashboard';
 
+import { UserPayload } from "@/types/user";
+
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'your_super_secret_jwt_key');
 
-interface UserPayload {
-    userId: string;
-}
 
 export default async function DashboardPage() {
     const cookieStore = await cookies();
