@@ -1,5 +1,6 @@
 'use client'
 
+import Link from "next/link";
 import { UserPayload } from "@/types/user";
 import { Equipment, EquipmentCondition } from "@/types/equipment";
 import React, { useState, useEffect, useMemo, useCallback } from "react"; // Added useCallback and useMemo
@@ -134,33 +135,35 @@ export default function DashboardContent({ user }: { user: UserPayload | null })
                 {filteredEquipment.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {filteredEquipment.map((equipment) => (
-                            <div
-                                key={equipment.id}
-                                className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col items-center text-center"
-                            >
-                                <img
-                                    src={equipment.pathToPhoto}
-                                    alt={equipment.name}
-                                    className="w-32 h-32 object-cover rounded-full mb-4 border-2 border-gray-300 dark:border-gray-600"
-                                />
-                                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{equipment.name}</h2>
-                                <p className="text-gray-700 dark:text-gray-300 mb-1">
-                                    Type: {equipment.type}
-                                </p>
-                                <p className="text-gray-700 dark:text-gray-300 mb-1">
-                                    Serial: {equipment.serialNumber}
-                                </p>
-                                <p className="text-gray-700 dark:text-gray-300 mb-1">
-                                    Room: {equipment.room}
-                                </p>
-                                <span
-                                    className={`px-3 py-1 rounded-full text-xs font-medium mt-3 ${getConditionColor(
-                                        equipment.condition
-                                    )}`}
+                            <Link key={equipment.id} href={`/equipment/${equipment.id}`} passHref>
+                                <div
+                                    key={equipment.id}
+                                    className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col items-center text-center"
                                 >
-                                    {equipment.condition.replace(/_/g, ' ')}
-                                </span>
-                            </div>
+                                    <img
+                                        src={equipment.pathToPhoto}
+                                        alt={equipment.name}
+                                        className="w-32 h-32 object-cover rounded-full mb-4 border-2 border-gray-300 dark:border-gray-600"
+                                    />
+                                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{equipment.name}</h2>
+                                    <p className="text-gray-700 dark:text-gray-300 mb-1">
+                                        Type: {equipment.type}
+                                    </p>
+                                    <p className="text-gray-700 dark:text-gray-300 mb-1">
+                                        Serial: {equipment.serialNumber}
+                                    </p>
+                                    <p className="text-gray-700 dark:text-gray-300 mb-1">
+                                        Room: {equipment.room}
+                                    </p>
+                                    <span
+                                        className={`px-3 py-1 rounded-full text-xs font-medium mt-3 ${getConditionColor(
+                                            equipment.condition
+                                        )}`}
+                                    >
+                                        {equipment.condition.replace(/_/g, ' ')}
+                                    </span>
+                                </div>
+                            </Link>
                         ))}
                     </div>
                 ) : (
