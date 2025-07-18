@@ -179,10 +179,9 @@ export default function DashboardContent({ user }: { user: UserPayload | null })
     const handleRequestSelected = useCallback(() => {
         // Here you would send the selectedEquipmentIds to your backend for a request
         console.log("Requesting equipment with IDs:", selectedEquipmentIds);
-        alert(`Requested equipment IDs: ${selectedEquipmentIds.join(', ')}`);
-        setIsSelectMode(false); // Exit select mode after request
-        setSelectedEquipmentIds([]); // Clear selections
-        // Optionally, show a success message or trigger a refetch of equipment data
+        router.push(`/request/create?ids=${selectedEquipmentIds.join(",")}`);
+        setIsSelectMode(false);
+        setSelectedEquipmentIds([]);
     }, [selectedEquipmentIds]);
 
     const handleCancelSelection = useCallback(() => {
