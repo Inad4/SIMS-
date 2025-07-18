@@ -1,4 +1,4 @@
-import { EquipmentCondition } from "@/types/equipment";
+import { Equipment, EquipmentCondition } from "@/types/equipment";
 
 export const getConditionColor = (condition: EquipmentCondition): string => {
     switch (condition) {
@@ -13,4 +13,10 @@ export const getConditionColor = (condition: EquipmentCondition): string => {
         default:
             return 'bg-gray-100 text-gray-800';
     }
+};
+
+export const getUniqueTypes = (equipment: Equipment[]): string[] => {
+    const types = new Set<string>();
+    equipment.forEach(item => types.add(item.type));
+    return Array.from(types).sort();
 };
