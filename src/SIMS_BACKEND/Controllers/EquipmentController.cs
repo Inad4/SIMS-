@@ -12,22 +12,27 @@ public class EquipmentController : ControllerBase
 {
     private readonly SharedDbContext _context;
     private readonly UserManager<User> _userManager;
+    private readonly IReportsService _reportsService;
 
-    public EquipmentController(SharedDbContext context, UserManager<User> userManager)
+    public EquipmentController(
+        SharedDbContext context,
+        UserManager<User> userManager,
+        IReportsService reportsService)
     {
         _context = context;
         _userManager = userManager;
+        _reportsService = reportsService;
     }
 
-    
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Equipment>>> GetEquipment(
         [FromQuery] string? searchTerm,
         [FromQuery] string? typeFilter,
-        [FromQuery] int? roomFilter)
+        [FromQuery] int? roomFilter,
+        [FromQuery] string? serialnumberFilter,
+        [FromQuery] string? conditionFilter)
     {
-        var query = _context.Equipment
-            .Where(e => e.Condition == EquipmentCondition.AVAILABLE);
+        var query = _context.Equipment.AsQueryable();
 
         if (!string.IsNullOrEmpty(searchTerm))
         {
@@ -40,11 +45,27 @@ public class EquipmentController : ControllerBase
             query = query.Where(e => e.Type == typeFilter);
         }
 
+        if (!string.IsNullOrEmpty(serialnumberFilter))
+        {
+            query = query.Where(e => e.SerialNumber == serialnumberFilter);
+        }
+
+        if (!string.IsNullOrEmpty(conditionFilter))
+        {
+            if (Enum.TryParse<EquipmentCondition>(conditionFilter, out var parsedCondition))
+            {
+                query = query.Where(e => e.Condition == parsedCondition);
+            }
+            else
+            {
+                return BadRequest("Invalid condition filter value.");
+            }
+        }
+
         if (roomFilter.HasValue)
         {
             query = query.Where(e => e.Room == roomFilter.Value);
         }
-        query = query.Where(e => e.Room == roomFilter);
 
         return await query.ToListAsync();
     }
@@ -61,10 +82,8 @@ public class EquipmentController : ControllerBase
     public async Task<ActionResult<Equipment>> AddEquipment(Equipment equipment)
     {
         equipment.Condition = EquipmentCondition.AVAILABLE;
-
         _context.Equipment.Add(equipment);
         await _context.SaveChangesAsync();
-
 
         return CreatedAtAction(nameof(GetEquipment), new { id = equipment.Id }, equipment);
     }
@@ -100,10 +119,7 @@ public class EquipmentController : ControllerBase
             {
                 return NotFound();
             }
-            else
-            {
-                throw;
-            }
+            throw;
         }
 
         return NoContent();
@@ -123,6 +139,82 @@ public class EquipmentController : ControllerBase
         await _context.SaveChangesAsync();
 
         return NoContent();
+    }
+
+    [HttpGet("export/csv")]
+    [Authorize(Policy = "AdminOnly")]
+    public async Task<IActionResult> ExportEquipmentToCsv(
+        [FromQuery] string? searchTerm,
+        [FromQuery] string? typeFilter,
+        [FromQuery] int? roomFilter,
+        [FromQuery] string? serialnumberFilter,
+        [FromQuery] string? conditionFilter)
+    {
+        var query = ApplyFilters(_context.Equipment,
+            searchTerm, typeFilter, roomFilter, serialnumberFilter, conditionFilter);
+
+        var equipment = await query.ToListAsync();
+        var csvBytes = await _reportsService.GenerateEquipmentCsvReport(equipment);
+
+        return File(csvBytes, "text/csv", $"equipment_report_{DateTime.UtcNow:yyyyMMdd}.csv");
+    }
+
+    [HttpGet("export/pdf")]
+    [Authorize(Policy = "AdminOnly")]
+    public async Task<IActionResult> ExportEquipmentToPdf(
+        [FromQuery] string? searchTerm,
+        [FromQuery] string? typeFilter,
+        [FromQuery] int? roomFilter,
+        [FromQuery] string? serialnumberFilter,
+        [FromQuery] string? conditionFilter)
+    {
+        var query = ApplyFilters(_context.Equipment,
+            searchTerm, typeFilter, roomFilter, serialnumberFilter, conditionFilter);
+
+        var equipment = await query.ToListAsync();
+        var pdfBytes = await _reportsService.GenerateEquipmentPdfReport(equipment);
+
+        return File(pdfBytes, "application/pdf", $"equipment_report_{DateTime.UtcNow:yyyyMMdd}.pdf");
+    }
+
+    private IQueryable<Equipment> ApplyFilters(
+        IQueryable<Equipment> query,
+        string? searchTerm,
+        string? typeFilter,
+        int? roomFilter,
+        string? serialnumberFilter,
+        string? conditionFilter)
+    {
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            query = query.Where(e => e.Name.Contains(searchTerm) ||
+                              e.SerialNumber.Contains(searchTerm));
+        }
+
+        if (!string.IsNullOrEmpty(typeFilter))
+        {
+            query = query.Where(e => e.Type == typeFilter);
+        }
+
+        if (!string.IsNullOrEmpty(serialnumberFilter))
+        {
+            query = query.Where(e => e.SerialNumber == serialnumberFilter);
+        }
+
+        if (!string.IsNullOrEmpty(conditionFilter))
+        {
+            if (Enum.TryParse<EquipmentCondition>(conditionFilter, out var parsedCondition))
+            {
+                query = query.Where(e => e.Condition == parsedCondition);
+            }
+        }
+
+        if (roomFilter.HasValue)
+        {
+            query = query.Where(e => e.Room == roomFilter.Value);
+        }
+
+        return query;
     }
 
     private bool EquipmentExists(int id)
