@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { UserPayload } from "@/types/user";
+import { User } from "@/types/user";
 
-export default function Navbar({ initialUser }: { initialUser: UserPayload }) {
-    const [currentUser, setCurrentUser] = useState<UserPayload | null>(initialUser);
+export default function Navbar({ initialUser }: { initialUser: User }) {
+    const [currentUser, setCurrentUser] = useState<User | null>(initialUser);
     //const router = useRouter();
 
     const handleLogout = async () => {
