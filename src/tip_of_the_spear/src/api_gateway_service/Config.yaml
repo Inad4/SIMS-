@@ -1,0 +1,58 @@
+full_public_pem_url: http://localhost:8010/public_pem
+full_redis_url: "redis://127.0.0.1/"
+versions:
+  - version: v1
+    routes:
+      - path: /auth
+        strict_mode: true
+        service_addresses:
+          - localhost:8010
+        auth:
+          auth_required: false
+          authorized_roles:
+            - admin
+            - user
+        endpoints:
+          - endpoint_path: /login
+            authorized_roles:
+              - admin
+              - user
+            cached: false
+          - endpoint_path: /api-docs/*
+            authorized_roles:
+              - admin
+              - user
+            cached: false
+          - endpoint_path: /signup
+            authorized_roles:
+              - admin
+              - user
+            cached: false
+          - endpoint_path: /public_pem
+            authorized_roles:
+              - admin
+              - user
+            cached: true
+            expiration_time_seconds: 900
+      - path: /example2
+        strict_mode: false
+        service_addresses:
+          - localhost:8002
+          - localhost:8003
+        auth:
+          auth_required: true
+          authorized_roles:
+            - admin
+        endpoints:
+          - endpoint_path: /nz
+            request_type: Http
+            authorized_roles:
+              - admin
+              - user
+            cached: false
+          - endpoint_path: /bomba
+            request_type: Http
+            authorized_roles:
+              - admin
+              - user
+            cached: false
