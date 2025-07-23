@@ -27,19 +27,18 @@ public class ReportsController : ControllerBase
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var isAdmin = User.IsInRole("SchoolAdmin");
 
-            // Start with base query
             IQueryable<Request> baseQuery = _context.Requests
                 .Include(r => r.User)
                 .Include(r => r.Equipment)
                 .Where(r => r.Equipment.Any(e => e.SchoolId == schoolId));
 
-            // Apply user filter if not admin
+           
             if (!isAdmin)
             {
                 baseQuery = baseQuery.Where(r => r.UserId == userId);
             }
 
-            // Now apply ordering
+          
             var orderedQuery = baseQuery.OrderByDescending(r => r.CreatedAt);
 
             var report = await orderedQuery
@@ -71,17 +70,17 @@ public class ReportsController : ControllerBase
         }
     }
 
-    [HttpGet("equipment/csv")]  // Explicit HttpGet
+    [HttpGet("equipment/csv")]  
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> ExportEquipmentCsv()
     {
         try
         {
-            // Get school ID from authenticated admin
+            
             var schoolId = int.Parse(User.FindFirst("SchoolId").Value);
 
             var equipment = await _context.Equipment
-                .Where(e => e.SchoolId == schoolId) // Filter by admin's school
+                .Where(e => e.SchoolId == schoolId) 
                 .ToListAsync();
 
             var csv = new StringBuilder();
@@ -104,7 +103,7 @@ public class ReportsController : ControllerBase
         }
     }
 
-    [HttpGet("equipment/pdf")]  // Explicit HttpGet
+    [HttpGet("equipment/pdf")]  
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> ExportEquipmentPdf(int Id)
     {
@@ -162,14 +161,14 @@ public class ReportsController : ControllerBase
         return File(fileBytes, "application/pdf", $"{Id}_equipment.pdf");
     }
 
-    [HttpGet("users/requests/csv")]  // Explicit HttpGet with unique route
+    [HttpGet("users/requests/csv")]  
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> ExportUserRequestsCsv(int schoolId, string userId)
     {
         var currentUserId = User.Identity.Name;
         var isAdmin = User.IsInRole("SchoolAdmin");
 
-        // Users can only access their own reports unless they're admins
+
         if (!isAdmin && currentUserId != userId)
         {
             return Forbid();
@@ -207,7 +206,7 @@ public class ReportsController : ControllerBase
         return File(Encoding.UTF8.GetBytes(csv.ToString()), "text/csv", fileName);
     }
 
-    [HttpGet("users/requests/pdf")]  // Explicit HttpGet with unique route
+    [HttpGet("users/requests/pdf")]  
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> ExportUserRequestsPdf(int schoolId, string userId)
     {

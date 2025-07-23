@@ -41,7 +41,7 @@ public class RequestsController : ControllerBase
             return BadRequest("Some equipment items were not found");
         }
 
-        // Check if equipment is available
+
         var unavailableItems = equipment.Where(e => e.Status != EquipmentStatus.AVAILABLE).ToList();
         if (unavailableItems.Any())
         {
@@ -80,7 +80,7 @@ public class RequestsController : ControllerBase
             return NotFound();
         }
 
-        // Users can only see their own requests, admins can see all
+  
         if (!isAdmin && request.UserId != userId)
         {
             return Forbid();
@@ -157,7 +157,6 @@ public class RequestsController : ControllerBase
         request.Status = RequestStatus.APPROVED;
         request.ApprovedAt = DateTime.UtcNow;
 
-        // Equipment remains checked out
         foreach (var equipment in request.Equipment)
         {
             equipment.Status = EquipmentStatus.CHECKED_OUT;
