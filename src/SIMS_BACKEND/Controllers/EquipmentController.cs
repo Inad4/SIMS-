@@ -32,7 +32,8 @@ public class EquipmentController : ControllerBase
         [FromQuery] string? serialnumberFilter,
         [FromQuery] string? conditionFilter)
     {
-        var query = _context.Equipment.AsQueryable();
+        var query = _context.Equipment
+            .Where(e => e.Condition == EquipmentCondition.AVAILABLE);
 
         if (!string.IsNullOrEmpty(searchTerm))
         {
@@ -43,6 +44,23 @@ public class EquipmentController : ControllerBase
         if (!string.IsNullOrEmpty(typeFilter))
         {
             query = query.Where(e => e.Type == typeFilter);
+        }
+
+        if (!string.IsNullOrEmpty(serialnumberFilter))
+        {
+            query = query.Where(e => e.SerialNumber == serialnumberFilter);
+        }
+
+        if (!string.IsNullOrEmpty(statusFilter))
+        {
+            if (Enum.TryParse<EquipmentStatus>(statusFilter, out var parsedStatus))
+            {
+                query = query.Where(e => e.Status == parsedStatus);
+            }
+            else
+            {
+                return BadRequest("Invalid status filter value.");
+            }
         }
 
         if (!string.IsNullOrEmpty(serialnumberFilter))
@@ -70,11 +88,22 @@ public class EquipmentController : ControllerBase
         return await query.ToListAsync();
     }
 
-    [HttpGet("all")]
-    [Authorize(Policy = "AdminOnly")]
-    public async Task<ActionResult<IEnumerable<Equipment>>> GetAllEquipment()
+    // Get single equipment item
+    [HttpGet("{id}")]
+    public async Task<ActionResult<Equipment>> GetEquipmentById(int id)
     {
-        return await _context.Equipment.ToListAsync();
+        var schoolId = int.Parse(User.FindFirst("SchoolId").Value);
+        var equipment = await _context.Equipment
+            .Include(e => e.Requests)
+            .ThenInclude(r => r.User)
+            .FirstOrDefaultAsync(e => e.Id == id && e.SchoolId == schoolId);
+
+        if (equipment == null)
+        {
+            return NotFound();
+        }
+
+        return equipment;
     }
 
     [HttpPost]
@@ -97,7 +126,10 @@ public class EquipmentController : ControllerBase
             return BadRequest();
         }
 
-        var existingEquipment = await _context.Equipment.FindAsync(id);
+        var schoolId = int.Parse(User.FindFirst("SchoolId").Value);
+        var existingEquipment = await _context.Equipment
+            .FirstOrDefaultAsync(e => e.Id == id && e.SchoolId == schoolId);
+
         if (existingEquipment == null)
         {
             return NotFound();
@@ -107,7 +139,9 @@ public class EquipmentController : ControllerBase
         existingEquipment.Type = equipment.Type;
         existingEquipment.SerialNumber = equipment.SerialNumber;
         existingEquipment.Room = equipment.Room;
-        existingEquipment.Condition = equipment.Condition;
+        existingEquipment.Status = equipment.Status;
+        existingEquipment.PathToPhoto = equipment.PathToPhoto;
+        existingEquipment.UpdatedAt = DateTime.UtcNow;
 
         try
         {
@@ -129,7 +163,10 @@ public class EquipmentController : ControllerBase
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> DeleteEquipment(int id)
     {
-        var equipment = await _context.Equipment.FindAsync(id);
+        var schoolId = int.Parse(User.FindFirst("SchoolId").Value);
+        var equipment = await _context.Equipment
+            .FirstOrDefaultAsync(e => e.Id == id && e.SchoolId == schoolId);
+
         if (equipment == null)
         {
             return NotFound();

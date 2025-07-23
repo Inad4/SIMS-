@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SharedModels;
-using System.Net;
 using System.Security.Claims;
+using SIMS_BACKEND.Dto;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -41,6 +41,13 @@ public class RequestsController : ControllerBase
             return BadRequest("Some equipment items were not found");
         }
 
+        // Check if equipment is available
+        var unavailableItems = equipment.Where(e => e.Status != EquipmentStatus.AVAILABLE).ToList();
+        if (unavailableItems.Any())
+        {
+            return BadRequest($"Equipment items are not available: {string.Join(", ", unavailableItems.Select(e => e.Name))}");
+        }
+
         var request = new Request
         {
             Message = requestDto.Message,
@@ -52,14 +59,45 @@ public class RequestsController : ControllerBase
 
         _context.Requests.Add(request);
 
-        foreach (var item in equipment)
-        {
-            item.Condition = EquipmentCondition.CHECKED_OUT;
-        }
-
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(Request), new { id = request.Id }, request);
+        return CreatedAtAction(nameof(GetRequest), new { id = request.Id }, request);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<Request>> GetRequest(int id)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var isAdmin = User.IsInRole("Admin");
+
+        var request = await _context.Requests
+            .Include(r => r.Equipment)
+            .Include(r => r.User)
+            .FirstOrDefaultAsync(r => r.Id == id);
+
+        if (request == null)
+        {
+            return NotFound();
+        }
+
+        // Users can only see their own requests, admins can see all
+        if (!isAdmin && request.UserId != userId)
+        {
+            return Forbid();
+        }
+
+        return request;
+    }
+
+    [HttpGet]
+    [Authorize(Policy = "AdminOnly")]
+    public async Task<ActionResult<IEnumerable<Request>>> GetRequests()
+    {
+        return await _context.Requests
+            .Include(r => r.Equipment)
+            .Include(r => r.User)
+            .OrderByDescending(r => r.CreatedAt)
+            .ToListAsync();
     }
 
     [HttpGet("my")]
@@ -70,6 +108,19 @@ public class RequestsController : ControllerBase
         return await _context.Requests
             .Include(r => r.Equipment)
             .Where(r => r.UserId == userId)
+            .OrderByDescending(r => r.CreatedAt)
+            .ToListAsync();
+    }
+
+    [HttpGet("manager/requests")]
+    [Authorize(Policy = "AdminOnly")]
+    public async Task<ActionResult<IEnumerable<Request>>> GetManagerRequests()
+    {
+        return await _context.Requests
+            .Include(r => r.Equipment)
+            .Include(r => r.User)
+            .Where(r => r.Status == RequestStatus.PENDING)
+            .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
     }
 
@@ -81,6 +132,7 @@ public class RequestsController : ControllerBase
             .Include(r => r.Equipment)
             .Include(r => r.User)
             .Where(r => r.Status == RequestStatus.PENDING)
+            .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
     }
 
@@ -97,15 +149,29 @@ public class RequestsController : ControllerBase
             return NotFound();
         }
 
+        if (request.Status != RequestStatus.PENDING)
+        {
+            return BadRequest("Request is not in pending status");
+        }
+
         request.Status = RequestStatus.APPROVED;
+        request.ApprovedAt = DateTime.UtcNow;
+
+        // Equipment remains checked out
+        foreach (var equipment in request.Equipment)
+        {
+            equipment.Status = EquipmentStatus.CHECKED_OUT;
+            equipment.UpdatedAt = DateTime.UtcNow;
+        }
+
         await _context.SaveChangesAsync();
 
         return NoContent();
     }
-    
+
     [HttpPut("{id}/reject")]
     [Authorize(Policy = "AdminOnly")]
-    public async Task<IActionResult> RejectRequest(int id, [FromBody] string? rejectionReason)
+    public async Task<IActionResult> RejectRequest(int id, [FromBody] RejectRequestDto rejectDto)
     {
         var request = await _context.Requests
             .Include(r => r.Equipment)
@@ -114,26 +180,26 @@ public class RequestsController : ControllerBase
         if (request == null)
         {
             return NotFound();
+        }
+
+        if (request.Status != RequestStatus.PENDING)
+        {
+            return BadRequest("Request is not in pending status");
         }
 
         request.Status = RequestStatus.REJECTED;
-        request.Message = $"REJECTED: {rejectionReason ?? "No reason provided"}. Original request: {request.Message}";
+        request.RejectedAt = DateTime.UtcNow;
+        request.Message = $"REJECTED: {rejectDto.RejectionReason ?? "No reason provided"}. Original request: {request.Message}";
 
-     
-        foreach (var equipment in request.Equipment)
-        {
-            equipment.Condition = EquipmentCondition.AVAILABLE;
-        }
 
         await _context.SaveChangesAsync();
 
         return NoContent();
     }
 
-
     [HttpPut("{id}/return")]
     [Authorize(Policy = "AdminOnly")]
-    public async Task<IActionResult> ReturnRequest(int id, [FromBody] EquipmentCondition condition)
+    public async Task<IActionResult> ReturnRequest(int id, [FromBody] ReturnRequestDto returnDto)
     {
         var request = await _context.Requests
             .Include(r => r.Equipment)
@@ -142,27 +208,19 @@ public class RequestsController : ControllerBase
         if (request == null)
         {
             return NotFound();
+        }
+
+        if (request.Status != RequestStatus.APPROVED)
+        {
+            return BadRequest("Can only return approved requests");
         }
 
         request.Status = RequestStatus.RETURNED;
         request.ReturnedAt = DateTime.UtcNow;
 
-        foreach (var equipment in request.Equipment)
-        {
-            equipment.Condition = condition == EquipmentCondition.UNDER_REPAIR
-                ? EquipmentCondition.AVAILABLE
-                : EquipmentCondition.RETIRED;
-            equipment.Condition = condition;
-        }
-
         await _context.SaveChangesAsync();
 
         return NoContent();
     }
 }
 
-public class CreateRequestDto
-{
-    public List<int> EquipmentIds { get; set; } = new List<int>();
-    public string Message { get; set; } = string.Empty;
-}
