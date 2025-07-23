@@ -70,6 +70,8 @@ services:
     # environment:
     #   # Example environment variables for Service A
     #   SERVICE_A_PORT: 8000
+    depends_on:
+      - auth_service
     networks:
       - app-network
 
@@ -78,7 +80,7 @@ services:
       context: .
       dockerfile: ./auth_service/Dockerfile
     ports:
-      - "8009:8009" # Example port mapping
+      - "8010:8010" # Example port mapping
     # environment:
     #   # Example environment variables for Service A
     #   SERVICE_A_PORT: 8000
