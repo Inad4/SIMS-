@@ -22,55 +22,9 @@ public class EquipmentController : ControllerBase
     }
 
 
-    [HttpGet("filtered")]
-    public async Task<ActionResult<IEnumerable<Equipment>>> GetFilteredEquipment(
-        [FromQuery] string? searchTerm,
-        [FromQuery] string? typeFilter,
-        [FromQuery] int? roomFilter,
-        [FromQuery] string? serialnumberFilter,
-        [FromQuery] string? statusFilter)
-    {
-        var schoolId = int.Parse(User.FindFirst("SchoolId").Value);
-        var query = _context.Equipment.Where(e => e.SchoolId == schoolId);
-
-        if (!string.IsNullOrEmpty(searchTerm))
-        {
-            query = query.Where(e => e.Name.Contains(searchTerm) ||
-                              e.SerialNumber.Contains(searchTerm));
-        }
-
-        if (!string.IsNullOrEmpty(typeFilter))
-        {
-            query = query.Where(e => e.Type == typeFilter);
-        }
-
-        if (!string.IsNullOrEmpty(serialnumberFilter))
-        {
-            query = query.Where(e => e.SerialNumber == serialnumberFilter);
-        }
-
-        if (!string.IsNullOrEmpty(statusFilter))
-        {
-            if (Enum.TryParse<EquipmentStatus>(statusFilter, out var parsedStatus))
-            {
-                query = query.Where(e => e.Status == parsedStatus);
-            }
-            else
-            {
-                return BadRequest("Invalid status filter value.");
-            }
-        }
-
-        if (roomFilter.HasValue)
-        {
-            query = query.Where(e => e.Room == roomFilter.Value);
-        }
-
-        return await query.ToListAsync();
-    }
-
-    // Get single equipment item
+   
     [HttpGet("{id}")]
+    [Authorize(Policy = "SchoolAdmin")]
     public async Task<ActionResult<Equipment>> GetEquipmentById(int id)
     {
         var schoolId = int.Parse(User.FindFirst("SchoolId").Value);
@@ -88,7 +42,7 @@ public class EquipmentController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "SchoolAdmin")]
     public async Task<ActionResult<Equipment>> AddEquipment(Equipment equipment)
     {
         equipment.Status = EquipmentStatus.AVAILABLE;
@@ -102,7 +56,7 @@ public class EquipmentController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "SchoolAdmin")]
     public async Task<IActionResult> UpdateEquipment(int id, Equipment equipment)
     {
         if (id != equipment.Id)
@@ -144,7 +98,7 @@ public class EquipmentController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "SchoolAdmin")]
     public async Task<IActionResult> DeleteEquipment(int id)
     {
         var schoolId = int.Parse(User.FindFirst("SchoolId").Value);
