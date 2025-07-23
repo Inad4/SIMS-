@@ -12,9 +12,11 @@ export default function Navbar({ initialUser }: { initialUser: User | null }) {
 
     const handleLogout = async () => {
             try {
-                const response = await fetch('/api/logout', { method: 'POST' });
+                const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE}/logout`, { method: 'POST' });
                 if (response.ok) {
                     setCurrentUser(null);
+                    localStorage.removeItem("jwt");
+                    localStorage.removeItem("refresh_token");
                     router.refresh();
                 } else {
                     console.error("Logout failed:", await response.text());

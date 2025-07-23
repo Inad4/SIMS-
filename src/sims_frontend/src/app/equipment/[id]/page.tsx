@@ -9,6 +9,7 @@ import { generateQrCodePdf } from '@/utils/utils';
 export default function EquipmentDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const id = params.id;
+  const user = { role: "admin" };
 
   const [equipment, setEquipment] = useState<Equipment | null>(null);
   const [loading, setLoading] = useState(true);
@@ -53,9 +54,21 @@ export default function EquipmentDetailPage({ params }: { params: { id: string }
   }, [id, router]);
 
   if (loading) return <div>Loading equipment details...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!equipment) return <div>Equipment not found.</div>;
-
+  if (!error && !equipment) setError("Equipment Not Found");
+  if (error) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 p-4 rounded-lg">
+                <p className="text-xl font-semibold mb-4">{error}</p>
+                <button
+                    onClick={() => window.location.reload()}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                    Retry
+                </button>
+            </div>
+        );
+    }
+  if (!equipment) return <></>;
   return (
     <div className="container mx-auto p-8 bg-white dark:bg-gray-800 shadow-lg rounded-lg mt-8">
       <h1 className="text-4xl font-bold mb-6 text-gray-900 dark:text-white">{equipment.name}</h1>
@@ -70,12 +83,17 @@ export default function EquipmentDetailPage({ params }: { params: { id: string }
           {equipment.updatedAt && <p className="text-sm text-gray-600 dark:text-gray-400">Last Updated: {new Date(equipment.updatedAt).toLocaleDateString()}</p>}
         </div>
       </div>
+      {user.role === "admin" && equipment.condition === EquipmentCondition.CHECKED_OUT && 
+      <><button onClick={handleQrCodeGeneration} className="mt-8 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
+        Log Return
+      </button><br /></>
+      }
       <button onClick={handleQrCodeGeneration} className="mt-8 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
         Generate Qr Code
       </button>
       <br />
       <button onClick={() => router.back()} className="mt-8 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
-        Back to List
+        Back to Dashboard
       </button>
     </div>
   );
