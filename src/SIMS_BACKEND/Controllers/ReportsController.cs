@@ -1,4 +1,3 @@
-﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SharedModels;
@@ -7,7 +6,6 @@ using System.Text;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class ReportsController : ControllerBase
 {
     private readonly SharedDbContext _context;
@@ -32,13 +30,13 @@ public class ReportsController : ControllerBase
                 .Include(r => r.Equipment)
                 .Where(r => r.Equipment.Any(e => e.SchoolId == schoolId));
 
-           
+
             if (!isAdmin)
             {
                 baseQuery = baseQuery.Where(r => r.UserId == userId);
             }
 
-          
+
             var orderedQuery = baseQuery.OrderByDescending(r => r.CreatedAt);
 
             var report = await orderedQuery
@@ -70,17 +68,16 @@ public class ReportsController : ControllerBase
         }
     }
 
-    [HttpGet("equipment/csv")]  
-    [Authorize(Policy = "AdminOnly")]
+    [HttpGet("equipment/csv")]
     public async Task<IActionResult> ExportEquipmentCsv()
     {
         try
         {
-            
+
             var schoolId = int.Parse(User.FindFirst("SchoolId").Value);
 
             var equipment = await _context.Equipment
-                .Where(e => e.SchoolId == schoolId) 
+                .Where(e => e.SchoolId == schoolId)
                 .ToListAsync();
 
             var csv = new StringBuilder();
@@ -103,8 +100,7 @@ public class ReportsController : ControllerBase
         }
     }
 
-    [HttpGet("equipment/pdf")]  
-    [Authorize(Policy = "AdminOnly")]
+    [HttpGet("equipment/pdf")]
     public async Task<IActionResult> ExportEquipmentPdf(int Id)
     {
         var equipment = await _context.Equipment
@@ -161,8 +157,7 @@ public class ReportsController : ControllerBase
         return File(fileBytes, "application/pdf", $"{Id}_equipment.pdf");
     }
 
-    [HttpGet("users/requests/csv")]  
-    [Authorize(Policy = "AdminOnly")]
+    [HttpGet("users/requests/csv")]
     public async Task<IActionResult> ExportUserRequestsCsv(int schoolId, string userId)
     {
         var currentUserId = User.Identity.Name;
@@ -206,8 +201,7 @@ public class ReportsController : ControllerBase
         return File(Encoding.UTF8.GetBytes(csv.ToString()), "text/csv", fileName);
     }
 
-    [HttpGet("users/requests/pdf")]  
-    [Authorize(Policy = "AdminOnly")]
+    [HttpGet("users/requests/pdf")]
     public async Task<IActionResult> ExportUserRequestsPdf(int schoolId, string userId)
     {
         var currentUserId = User.Identity.Name;

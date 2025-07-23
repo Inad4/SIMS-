@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SIMS_BACKEND;
@@ -11,10 +11,18 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
     throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
 // Configure DbContext
-builder.Services.AddDbContext<SharedDbContext>(options =>
-    options.UseSqlServer(connectionString));
+try
+{
+    builder.Services.AddDbContext<SharedDbContext>(options =>
+        options.UseSqlite("Data Source=sims.db", x =>
+            x.MigrationsAssembly("SharedModels")));
 
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+}
+catch
+{
+    Console.WriteLine("db connection failed");
+}
+
 
 // Configure Identity
 builder.Services.AddIdentity<User, IdentityRole>(options =>
@@ -36,19 +44,6 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configure Authorization policies
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
-    options.AddPolicy("UserOnly", policy => policy.RequireRole("User"));
-    options.AddPolicy("SchoolAdmin", policy => policy.RequireRole("SchoolAdmin"));
-
-    // Default policy requires authentication
-    options.DefaultPolicy = new AuthorizationPolicyBuilder()
-        .RequireAuthenticatedUser()
-        .Build();
-});
-
 // Add CORS
 builder.Services.AddCors(options =>
 {
@@ -67,8 +62,6 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.UseDeveloperExceptionPage();
-    app.UseMigrationsEndPoint();
 }
 else
 {
@@ -80,8 +73,6 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseCors("AllowAll");
-app.UseAuthentication();
-app.UseAuthorization();
 
 app.MapControllers();
 

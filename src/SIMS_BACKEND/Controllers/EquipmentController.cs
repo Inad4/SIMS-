@@ -1,4 +1,3 @@
-﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +6,6 @@ using System.Security.Claims;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class EquipmentController : ControllerBase
 {
     private readonly SharedDbContext _context;
@@ -22,9 +20,8 @@ public class EquipmentController : ControllerBase
     }
 
 
-   
+
     [HttpGet("{id}")]
-    [Authorize(Policy = "SchoolAdmin")]
     public async Task<ActionResult<Equipment>> GetEquipmentById(int id)
     {
         var schoolId = int.Parse(User.FindFirst("SchoolId").Value);
@@ -42,7 +39,6 @@ public class EquipmentController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Policy = "SchoolAdmin")]
     public async Task<ActionResult<Equipment>> AddEquipment(Equipment equipment)
     {
         equipment.Status = EquipmentStatus.AVAILABLE;
@@ -56,7 +52,6 @@ public class EquipmentController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Policy = "SchoolAdmin")]
     public async Task<IActionResult> UpdateEquipment(int id, Equipment equipment)
     {
         if (id != equipment.Id)
@@ -98,7 +93,6 @@ public class EquipmentController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Policy = "SchoolAdmin")]
     public async Task<IActionResult> DeleteEquipment(int id)
     {
         var schoolId = int.Parse(User.FindFirst("SchoolId").Value);

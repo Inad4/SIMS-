@@ -1,5 +1,5 @@
-full_public_pem_url: http://localhost:8010/public_pem
-full_redis_url: "redis://0.0.0.0/"
+full_public_pem_url: http://auth-service:8010/public_pem
+full_redis_url: "redis://redis/"
 versions:
   - version: v1
     routes:

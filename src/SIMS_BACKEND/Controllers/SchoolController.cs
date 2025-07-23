@@ -1,4 +1,3 @@
-﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SharedModels;
@@ -6,7 +5,6 @@ using System.Security.Claims;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class SchoolController : ControllerBase
 {
     private readonly SharedDbContext _context;
@@ -17,14 +15,12 @@ public class SchoolController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Policy = "AdminOnly")] 
     public async Task<ActionResult<IEnumerable<School>>> GetSchool()
     {
         return await _context.Schools.ToListAsync();
     }
 
     [HttpGet("my")]
-    [Authorize(Policy = "SchoolAdmin")] 
     public async Task<ActionResult<School>> GetMySchool()
     {
         var schoolId = int.Parse(User.FindFirst("SchoolId").Value);
@@ -39,7 +35,6 @@ public class SchoolController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [Authorize(Policy = "AdminOnly")] 
     public async Task<ActionResult<School>> GetSchool(int id)
     {
         var school = await _context.Schools.FindAsync(id);
@@ -53,7 +48,6 @@ public class SchoolController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Policy = "AdminOnly")] 
     public async Task<ActionResult<School>> CreateSchool(School school)
     {
         school.CreatedAt = DateTime.UtcNow;
@@ -109,7 +103,6 @@ public class SchoolController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Policy = "AdminOnly")] 
     public async Task<IActionResult> DeleteSchool(int id)
     {
         var school = await _context.Schools.FindAsync(id);

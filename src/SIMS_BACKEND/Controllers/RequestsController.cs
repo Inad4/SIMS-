@@ -1,4 +1,3 @@
-﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +7,6 @@ using SIMS_BACKEND.Dto;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class RequestsController : ControllerBase
 {
     private readonly SharedDbContext _context;
@@ -21,7 +19,6 @@ public class RequestsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Policy = "UserOnly")]
     public async Task<ActionResult<Request>> CreateRequest([FromBody] CreateRequestDto requestDto)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -80,7 +77,7 @@ public class RequestsController : ControllerBase
             return NotFound();
         }
 
-  
+
         if (!isAdmin && request.UserId != userId)
         {
             return Forbid();
@@ -90,7 +87,6 @@ public class RequestsController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Policy = "AdminOnly")]
     public async Task<ActionResult<IEnumerable<Request>>> GetRequests()
     {
         return await _context.Requests
@@ -101,7 +97,6 @@ public class RequestsController : ControllerBase
     }
 
     [HttpGet("my")]
-    [Authorize(Policy = "UserOnly")]
     public async Task<ActionResult<IEnumerable<Request>>> GetMyRequests()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -113,7 +108,6 @@ public class RequestsController : ControllerBase
     }
 
     [HttpGet("manager/requests")]
-    [Authorize(Policy = "AdminOnly")]
     public async Task<ActionResult<IEnumerable<Request>>> GetManagerRequests()
     {
         return await _context.Requests
@@ -125,7 +119,6 @@ public class RequestsController : ControllerBase
     }
 
     [HttpGet("pending")]
-    [Authorize(Policy = "AdminOnly")]
     public async Task<ActionResult<IEnumerable<Request>>> GetPendingRequests()
     {
         return await _context.Requests
@@ -137,7 +130,6 @@ public class RequestsController : ControllerBase
     }
 
     [HttpPut("{id}/approve")]
-    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> ApproveRequest(int id)
     {
         var request = await _context.Requests
@@ -169,7 +161,6 @@ public class RequestsController : ControllerBase
     }
 
     [HttpPut("{id}/reject")]
-    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> RejectRequest(int id, [FromBody] RejectRequestDto rejectDto)
     {
         var request = await _context.Requests
@@ -197,7 +188,6 @@ public class RequestsController : ControllerBase
     }
 
     [HttpPut("{id}/return")]
-    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> ReturnRequest(int id, [FromBody] ReturnRequestDto returnDto)
     {
         var request = await _context.Requests
@@ -222,4 +212,3 @@ public class RequestsController : ControllerBase
         return NoContent();
     }
 }
-
