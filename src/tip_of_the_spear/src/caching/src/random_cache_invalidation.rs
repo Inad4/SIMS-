@@ -1,5 +1,4 @@
 use chrono::{Duration, NaiveDateTime, Utc};
-use log::warn;
 use rand::random;
 
 // you can finetune the curve with k
