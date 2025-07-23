@@ -2,6 +2,7 @@
 
 import React from 'react';
 import DashboardContent from './dashboard';
+import LandingPage from './landlngPage';
 import Link from 'next/link';
 import { User } from '@/types'; // Updated import
 
@@ -28,8 +29,12 @@ const dummyRegularUser: User = {
 };
 
 export default function DashboardPage() {
-    // You can switch between dummyAdminUser and dummyRegularUser to test
-    const currentUser: User | null = dummyAdminUser;
+    const currentUser: User | null = dummyRegularUser;
 
-    return <DashboardContent user={currentUser} />
+    if (currentUser){
+        return <DashboardContent user={currentUser} />
+    }
+    else{
+        return <LandingPage />
+    }
 }

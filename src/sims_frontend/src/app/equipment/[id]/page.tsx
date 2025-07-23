@@ -1,9 +1,10 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Equipment, EquipmentCondition } from '@/types/equipment';
 import { getConditionColor } from '@/utils/utils';
+import { generateQrCodePdf } from '@/utils/utils';
 
 export default function EquipmentDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -12,6 +13,14 @@ export default function EquipmentDetailPage({ params }: { params: { id: string }
   const [equipment, setEquipment] = useState<Equipment | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const handleQrCodeGeneration = async () => {
+    if (equipment){
+      generateQrCodePdf(`${location.origin}/equipment/${equipment?.id}`, `asset_${equipment?.name}_${equipment?.serialNumber}_qrcode`);
+    } else{
+      console.log("Unexpected error");
+    }
+  }
 
   useEffect(() => {
     if (id) {
@@ -53,6 +62,10 @@ export default function EquipmentDetailPage({ params }: { params: { id: string }
           {equipment.updatedAt && <p className="text-sm text-gray-600 dark:text-gray-400">Last Updated: {new Date(equipment.updatedAt).toLocaleDateString()}</p>}
         </div>
       </div>
+      <button onClick={handleQrCodeGeneration} className="mt-8 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
+        Generate Qr Code
+      </button>
+      <br />
       <button onClick={() => router.back()} className="mt-8 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
         Back to List
       </button>

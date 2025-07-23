@@ -5,14 +5,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export default function SignUpPage() {
-    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const router = useRouter();
 
-    const handleSignUp = () => {
+    const handleSignUp = async () => {
         setErrorMessage('');
         setSuccessMessage('');
 
@@ -26,21 +26,35 @@ export default function SignUpPage() {
             return;
         }
 
-        const signupSuccessful = email !== "error@example.com";
-        const userExists = email === "exists@example.com";
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/signup`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password }),
+            });
 
-        if (userExists) {
-            setErrorMessage("An account with this email already exists.");
-            return;
+            const data = await response.json();
+            
+            if (data.status == 409) {
+                setErrorMessage("An account with this email already exists.");
+                return;
+            }
+
+            if (!response.ok) {
+                setErrorMessage(data.message || "Signup failed.");
+                return;
+            }
+
+            localStorage.setItem("jwt", data.data.jwt);
+            localStorage.setItem("refresh_token", data.data.refresh_token);
+            setSuccessMessage("Account created successfully!");
+            router.replace("/dashboard");
+        } catch (error) {
+            console.error('Login error:', error);
+            setErrorMessage("An unexpected error occurred. Please try again.");
         }
-
-        if (!signupSuccessful) {
-            setErrorMessage("Failed to create account. Please try again.");
-            return;
-        }
-
-        setSuccessMessage("Account created successfully! You can now log in.");
-        router.replace("/auth/login");
     };
 
     return (
@@ -57,15 +71,14 @@ export default function SignUpPage() {
                         </h1>
                         <form className="space-y-4 md:space-y-6" onSubmit={(e) => { e.preventDefault(); handleSignUp(); }}>
                             <div>
-                                <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your email</label>
+                                <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your username</label>
                                 <input
-                                    type="email"
                                     name="email"
                                     id="email"
                                     className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                     placeholder="name@company.com"
-                                    value={email}
-                                    onChange={(e) => { setEmail(e.target.value); }}
+                                    value={username}
+                                    onChange={(e) => { setUsername(e.target.value); }}
                                     required
                                 />
                             </div>
