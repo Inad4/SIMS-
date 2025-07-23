@@ -13,64 +13,50 @@ public class EquipmentController : ControllerBase
     private readonly SharedDbContext _context;
     private readonly UserManager<User> _userManager;
 
-    public EquipmentController(SharedDbContext context, UserManager<User> userManager)
+    public EquipmentController(
+        SharedDbContext context,
+        UserManager<User> userManager)
     {
         _context = context;
         _userManager = userManager;
     }
 
-    
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<Equipment>>> GetEquipment(
-        [FromQuery] string? searchTerm,
-        [FromQuery] string? typeFilter,
-        [FromQuery] int? roomFilter)
+
+   
+    [HttpGet("{id}")]
+    [Authorize(Policy = "SchoolAdmin")]
+    public async Task<ActionResult<Equipment>> GetEquipmentById(int id)
     {
-        var query = _context.Equipment
-            .Where(e => e.Condition == EquipmentCondition.AVAILABLE);
+        var schoolId = int.Parse(User.FindFirst("SchoolId").Value);
+        var equipment = await _context.Equipment
+            .Include(e => e.Requests)
+            .ThenInclude(r => r.User)
+            .FirstOrDefaultAsync(e => e.Id == id && e.SchoolId == schoolId);
 
-        if (!string.IsNullOrEmpty(searchTerm))
+        if (equipment == null)
         {
-            query = query.Where(e => e.Name.Contains(searchTerm) ||
-                              e.SerialNumber.Contains(searchTerm));
+            return NotFound();
         }
 
-        if (!string.IsNullOrEmpty(typeFilter))
-        {
-            query = query.Where(e => e.Type == typeFilter);
-        }
-
-        if (roomFilter.HasValue)
-        {
-            query = query.Where(e => e.Room == roomFilter.Value);
-        }
-        query = query.Where(e => e.Room == roomFilter);
-
-        return await query.ToListAsync();
-    }
-
-    [HttpGet("all")]
-    [Authorize(Policy = "AdminOnly")]
-    public async Task<ActionResult<IEnumerable<Equipment>>> GetAllEquipment()
-    {
-        return await _context.Equipment.ToListAsync();
+        return equipment;
     }
 
     [HttpPost]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "SchoolAdmin")]
     public async Task<ActionResult<Equipment>> AddEquipment(Equipment equipment)
     {
-        equipment.Condition = EquipmentCondition.AVAILABLE;
+        equipment.Status = EquipmentStatus.AVAILABLE;
+        equipment.CreatedAt = DateTime.UtcNow;
+        equipment.SchoolId = int.Parse(User.FindFirst("SchoolId").Value);
 
         _context.Equipment.Add(equipment);
         await _context.SaveChangesAsync();
 
-
-        return CreatedAtAction(nameof(GetEquipment), new { id = equipment.Id }, equipment);
+        return CreatedAtAction(nameof(GetEquipmentById), new { id = equipment.Id }, equipment);
     }
 
     [HttpPut("{id}")]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "SchoolAdmin")]
     public async Task<IActionResult> UpdateEquipment(int id, Equipment equipment)
     {
         if (id != equipment.Id)
@@ -78,7 +64,10 @@ public class EquipmentController : ControllerBase
             return BadRequest();
         }
 
-        var existingEquipment = await _context.Equipment.FindAsync(id);
+        var schoolId = int.Parse(User.FindFirst("SchoolId").Value);
+        var existingEquipment = await _context.Equipment
+            .FirstOrDefaultAsync(e => e.Id == id && e.SchoolId == schoolId);
+
         if (existingEquipment == null)
         {
             return NotFound();
@@ -88,7 +77,9 @@ public class EquipmentController : ControllerBase
         existingEquipment.Type = equipment.Type;
         existingEquipment.SerialNumber = equipment.SerialNumber;
         existingEquipment.Room = equipment.Room;
-        existingEquipment.Condition = equipment.Condition;
+        existingEquipment.Status = equipment.Status;
+        existingEquipment.PathToPhoto = equipment.PathToPhoto;
+        existingEquipment.UpdatedAt = DateTime.UtcNow;
 
         try
         {
@@ -100,20 +91,20 @@ public class EquipmentController : ControllerBase
             {
                 return NotFound();
             }
-            else
-            {
-                throw;
-            }
+            throw;
         }
 
         return NoContent();
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "SchoolAdmin")]
     public async Task<IActionResult> DeleteEquipment(int id)
     {
-        var equipment = await _context.Equipment.FindAsync(id);
+        var schoolId = int.Parse(User.FindFirst("SchoolId").Value);
+        var equipment = await _context.Equipment
+            .FirstOrDefaultAsync(e => e.Id == id && e.SchoolId == schoolId);
+
         if (equipment == null)
         {
             return NotFound();
