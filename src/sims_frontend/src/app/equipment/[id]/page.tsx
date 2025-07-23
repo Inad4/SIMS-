@@ -28,15 +28,23 @@ export default function EquipmentDetailPage({ params }: { params: { id: string }
         setLoading(true);
         setError(null);
         try {
-          const foundEquipment = { id: 1, name: 'Projector Epson EX3260', room: 201, pathToPhoto: 'https://via.placeholder.com/150/0000FF/FFFFFF?text=Projector', condition: EquipmentCondition.AVAILABLE, type: 'Projector', serialNumber: 'PRJ-EP3260-001', createdAt: '2023-01-15T10:00:00Z', updatedAt: '2024-06-01T14:30:00Z' };
-          if (foundEquipment) {
-            setEquipment(foundEquipment);
-          } else {
-            setError('Equipment not found');
-          }
-        } catch (err) {
-          setError('Failed to fetch equipment details');
-        } finally {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE}/equipment/${id}`, {
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+                }
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                setError(data.message || "Equipment fetch failed. Try again");
+                return;
+            }
+            
+            setEquipment(data);
+        } catch (error) {
+            console.error('Login error:', error);
+            setError("An unexpected error occurred. Please try again.");
+        } finally{
           setLoading(false);
         }
       };
