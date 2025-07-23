@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Equipment, EquipmentCondition } from '@/types/equipment';
-import { User } from '@/types/user'; // Import the User type
+import { Equipment, EquipmentCondition, User } from '@/types';
 
 export default function RequestFormPage() {
     const router = useRouter();
@@ -12,17 +11,16 @@ export default function RequestFormPage() {
     const [selectedEquipmentDetails, setSelectedEquipmentDetails] = useState<Equipment[]>([]);
     const [startDate, setStartDate] = useState<string>('');
     const [returnDate, setReturnDate] = useState<string>('');
-    const [message, setMessage] = useState<string>(''); // Changed from 'notes' to 'message'
+    const [message, setMessage] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Dummy current user for demonstration purposes
     const dummyCurrentUser: User = {
         id: "user123",
         email: "current.user@example.com",
         firstName: "Current",
         lastName: "User",
-        schoolId: 1, // Assuming a school ID
+        schoolId: 1,
         createdAt: null,
         updatedAt: null,
         isAdmin: false
@@ -34,7 +32,6 @@ export default function RequestFormPage() {
             try {
                 const equipmentIds = idsParam.split(',').map(Number);
 
-                // Dummy data for all available equipment
                 const dummyAllEquipment: Equipment[] = [
                     { id: 1, name: 'Projector Epson EX3260', room: 201, pathToPhoto: 'https://via.placeholder.com/150/0000FF/FFFFFF?text=Projector', condition: EquipmentCondition.AVAILABLE, type: 'Projector', serialNumber: 'PRJ-EP3260-001', createdAt: '2023-01-15T10:00:00Z', updatedAt: '2024-06-01T14:30:00Z' },
                     { id: 2, name: 'Laptop Dell XPS 15', room: 105, pathToPhoto: 'https://via.placeholder.com/150/FF0000/FFFFFF?text=Laptop', condition: EquipmentCondition.CHECKED_OUT, type: 'Laptop', serialNumber: 'LAP-DEL-XPS15-005', createdAt: '2022-11-20T08:00:00Z', updatedAt: '2024-07-10T09:15:00Z' },
@@ -75,36 +72,19 @@ export default function RequestFormPage() {
             return;
         }
 
-        // Construct the message based on selected equipment and dates
         const equipmentNames = selectedEquipmentDetails.map(eq => `${eq.name} (SN: ${eq.serialNumber})`).join(', ');
         const requestMessage = `Request for: ${equipmentNames}. From: ${startDate} To: ${returnDate}. ${message ? `Notes: ${message}` : ''}`;
 
-
         const newRequestPayload = {
-            message: requestMessage, // Using the combined message string
+            message: requestMessage,
             equipmentIds: selectedEquipmentDetails.map(eq => eq.id),
-            userId: dummyCurrentUser.id, // Assigning the dummy user ID
-            // startDate and returnDate are now embedded in the message string
-            // They are not separate fields in the EquipmentRequest type
+            userId: dummyCurrentUser.id,
         };
 
         console.log("Submitting Request:", newRequestPayload);
         alert("Request submitted! (Check console for data)");
 
-        // Simulate API call
-        // const response = await fetch('/api/equipment-requests', {
-        //     method: 'POST',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify(newRequestPayload)
-        // });
-        // if (response.ok) {
-        //     router.push('/request-success'); // Redirect to a success page
-        // } else {
-        //     const errorData = await response.json();
-        //     setError(errorData.message || "Failed to submit request.");
-        // }
-
-        router.push('/dashboard'); // Redirect to dashboard after submission
+        router.push('/dashboard');
     };
 
     if (loading) {
@@ -180,12 +160,12 @@ export default function RequestFormPage() {
                             <div>
                                 <label htmlFor="message" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Message (Optional)</label>
                                 <textarea
-                                    id="message" // Changed from 'notes' to 'message'
+                                    id="message"
                                     rows={4}
                                     className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                     placeholder="Any special requirements or details..."
-                                    value={message} // Changed from 'notes' to 'message'
-                                    onChange={(e) => setMessage(e.target.value)} // Changed from 'setNotes' to 'setMessage'
+                                    value={message}
+                                    onChange={(e) => setMessage(e.target.value)}
                                 ></textarea>
                             </div>
 

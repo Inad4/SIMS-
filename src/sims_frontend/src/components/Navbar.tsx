@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import { User } from "@/types/user";
 
@@ -49,19 +50,39 @@ export default function Navbar({ initialUser }: { initialUser: User }) {
               {/*<!-- Dropdown menu -->*/}
               <div className="z-50 hidden my-4 text-base list-none bg-white divide-y divide-gray-100 rounded-lg shadow-sm dark:bg-gray-700 dark:divide-gray-600" id="user-dropdown">
                 <div className="px-4 py-3">
-                  <span className="block text-sm text-gray-900 dark:text-white">Bonnie Green</span>
-                  <span className="block text-sm  text-gray-500 truncate dark:text-gray-400">name@flowbite.com</span>
+                  <span className="block text-sm text-gray-900 dark:text-white">{`${currentUser?.firstName} ${currentUser?.lastName}`}</span>
+                  <span className="block text-sm  text-gray-500 truncate dark:text-gray-400">{`${currentUser?.email}`}</span>
                 </div>
                 <ul className="py-2" aria-labelledby="user-menu-button">
                   <li>
-                    <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Dashboard</a>
+                  <Link href="/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">
+                      Dashboard
+                  </Link>
                   </li>
                   <li>
-                    <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Settings</a>
+                  <Link href="/history" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">
+                      Your Borrowing History
+                  </Link>
                   </li>
-                  <li>
-                    <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Earnings</a>
-                  </li>
+                  {currentUser && currentUser.isAdmin && (
+                      <>
+                          <li>
+                          <Link href="/admin/requests" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">
+                              Manage Requests
+                          </Link>
+                          </li>
+                          <li>
+                          <Link href="/admin/returns" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">
+                              Log Returns
+                          </Link>
+                          </li>
+                          <li>
+                          <Link href="/admin/history" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">
+                              Track All Borrowing
+                          </Link>
+                          </li>
+                      </>
+                  )}
                   <li>
                     <button className="w-full block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white" onClick={handleLogout}>Sign out</button>
                   </li>

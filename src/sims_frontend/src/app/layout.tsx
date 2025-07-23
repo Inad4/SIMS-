@@ -6,7 +6,7 @@ import "./globals.css";
 
 import Navbar from "@/components/Navbar";
 import FlowbiteProvider from "@/components/FlowbiteProvider";
-
+import { User } from "@/types/user";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,30 +28,36 @@ export const metadata: Metadata = {
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'secret_jwt_key');
 
-interface UserPayload {
-    userId: string;
-}
 
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-    let user: UserPayload | null = null;
+    let user: User | null = null;
     const cookieStore = await cookies();
     const token = cookieStore.get('auth_token')?.value;
 
     if (token) {
         try {
             const { payload } = await jwtVerify(token, JWT_SECRET, {
-                algorithms: ['HS256'], // Use the algorithm you used to sign your JWTs
+                algorithms: ['HS256'],
             });
-            user = payload as unknown as UserPayload;
+            user = payload as unknown as User;
         } catch (error) {
             console.error("JWT verification failed in layout:", error);
         }
     }
-    user = {userId: "some_user_id"};
+    user = {
+        id: "user123",
+        email: "current.user@example.com",
+        firstName: "Current",
+        lastName: "User",
+        schoolId: 1,
+        createdAt: null,
+        updatedAt: null,
+        isAdmin: true
+    };
   return (
     <html lang="en">
       <body

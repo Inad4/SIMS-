@@ -1,38 +1,30 @@
-'use client'
+'use client';
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useSearchParams } from "next/navigation";
-import { User } from "@/types/user";
-import { Equipment, EquipmentCondition } from "@/types/equipment";
-import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { getConditionColor, getUniqueTypes } from "@/utils/utils";
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { Equipment, EquipmentCondition, User } from '@/types';
+import { getConditionColor } from '@/utils/utils';
 
+interface DashboardContentProps {
+    user: User | null;
+}
 
-export default function DashboardContent({ user }: { user: User | null }) {
-    const [allEquipment, setAllEquipment] = useState<Equipment[]>([]);
+export default function DashboardContent({ user }: DashboardContentProps) {
+    const router = useRouter();
+    const [equipmentList, setEquipmentList] = useState<Equipment[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-
-    const searchParams = useSearchParams();
-    const initialSearchTerm = searchParams.get('search') || '';
-    const [searchTerm, setSearchTerm] = useState<string>(initialSearchTerm);
-
-    const [isFilterPanelOpen, setIsFilterPanelOpen] = useState<boolean>(false);
-    const [selectedType, setSelectedType] = useState<string | null>(null);
-    const [selectedCondition, setSelectedCondition] = useState<EquipmentCondition | null>(null);
-
-    const [isSelectMode, setIsSelectMode] = useState<boolean>(false);
-    const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<number[]>([]);
-
-    const router = useRouter();
+    const [searchTerm, setSearchTerm] = useState<string>('');
+    const [selectedEquipment, setSelectedEquipment] = useState<number[]>([]);
+    const [filterCondition, setFilterCondition] = useState<EquipmentCondition | ''>('');
+    const [filterType, setFilterType] = useState<string>('');
 
     useEffect(() => {
         const fetchEquipment = async () => {
             setLoading(true);
             setError(null);
             try {
-                const response = await new Promise<Equipment[]>((resolve) =>
+                const dummyData: Equipment[] = await new Promise((resolve) =>
                     setTimeout(() => {
                         resolve([
                             { id: 1, name: 'Projector Epson EX3260', room: 201, pathToPhoto: 'https://via.placeholder.com/150/0000FF/FFFFFF?text=Projector', condition: EquipmentCondition.AVAILABLE, type: 'Projector', serialNumber: 'PRJ-EP3260-001', createdAt: '2023-01-15T10:00:00Z', updatedAt: '2024-06-01T14:30:00Z' },
@@ -40,27 +32,16 @@ export default function DashboardContent({ user }: { user: User | null }) {
                             { id: 3, name: '3D Printer Creality Ender 3', room: 302, pathToPhoto: 'https://via.placeholder.com/150/008000/FFFFFF?text=3D+Printer', condition: EquipmentCondition.UNDER_REPAIR, type: '3D Printer', serialNumber: '3DP-CRE-END3-010', createdAt: '2023-03-01T11:00:00Z', updatedAt: '2024-07-17T16:00:00Z' },
                             { id: 4, name: 'Server Rack HP ProLiant', room: 400, pathToPhoto: 'https://via.placeholder.com/150/800080/FFFFFF?text=Server', condition: EquipmentCondition.RETIRED, type: 'Server', serialNumber: 'SRV-HP-PROL-001', createdAt: '2021-05-01T09:00:00Z', updatedAt: '2024-02-14T10:00:00Z' },
                             { id: 5, name: 'Microscope Lab-X 2000', room: 101, pathToPhoto: 'https://via.placeholder.com/150/FFFF00/000000?text=Microscope', condition: EquipmentCondition.AVAILABLE, type: 'Microscope', serialNumber: 'MIC-LBX-2000-003', createdAt: '2023-05-01T09:00:00Z', updatedAt: '2024-01-20T11:00:00Z' },
-                            { id: 6, name: 'Camera Canon EOS R5', room: 205, pathToPhoto: 'https://via.placeholder.com/150/FF8C00/FFFFFF?text=Camera', condition: EquipmentCondition.CHECKED_OUT, type: 'Camera', serialNumber: 'CAM-CAN-R5-002', createdAt: '2022-09-10T14:00:00Z', updatedAt: '2024-07-16T10:00:00Z' },
+                            { id: 6, name: 'Camera Canon EOS R5', room: 205, pathToPhoto: 'https://via.placeholder.com/150/FF8C00/FFFFFF?text=Camera', condition: EquipmentCondition.AVAILABLE, type: 'Camera', serialNumber: 'CAM-CAN-R5-002', createdAt: '2022-09-10T14:00:00Z', updatedAt: '2024-07-16T10:00:00Z' },
+                            { id: 7, name: 'VR Headset Oculus Quest', room: 301, pathToPhoto: 'https://via.placeholder.com/150/A020F0/FFFFFF?text=VR', condition: EquipmentCondition.AVAILABLE, type: 'VR Headset', serialNumber: 'VRH-OCU-QST-001', createdAt: '2023-06-20T11:00:00Z', updatedAt: '2024-07-05T15:00:00Z' },
+                            { id: 8, name: 'Sound System JBL EON', room: 202, pathToPhoto: 'https://via.placeholder.com/150/00CED1/FFFFFF?text=Sound', condition: EquipmentCondition.AVAILABLE, type: 'Sound System', serialNumber: 'SNS-JBL-EON-003', createdAt: '2022-03-10T10:00:00Z', updatedAt: '2024-05-20T09:00:00Z' },
                         ]);
                     }, 500)
                 );
-                setAllEquipment(response);
-
-                const urlType = searchParams.get('type');
-                if (urlType && getUniqueTypes(response).includes(urlType)) {
-                    setSelectedType(urlType);
-                }
-                const urlCondition = searchParams.get('condition');
-                if (urlCondition && Object.values(EquipmentCondition).includes(urlCondition as EquipmentCondition)) {
-                    setSelectedCondition(urlCondition as EquipmentCondition);
-                }
-
+                setEquipmentList(dummyData);
             } catch (err) {
-                if (err instanceof Error) {
-                    setError(err.message);
-                } else {
-                    setError("An unknown error occurred.");
-                }
+                console.error("Failed to fetch equipment:", err);
+                setError("Failed to load equipment. Please try again.");
             } finally {
                 setLoading(false);
             }
@@ -69,383 +50,248 @@ export default function DashboardContent({ user }: { user: User | null }) {
         fetchEquipment();
     }, []);
 
-    const uniqueTypes = useMemo(() => getUniqueTypes(allEquipment), [allEquipment]);
-    const allConditions = useMemo(() => Object.values(EquipmentCondition), []);
+    const availableEquipmentTypes = useMemo(() => {
+        const types = new Set<string>();
+        equipmentList.forEach(eq => types.add(eq.type));
+        return Array.from(types);
+    }, [equipmentList]);
 
     const filteredEquipment = useMemo(() => {
-        let currentFilteredList = allEquipment;
+        let currentFilteredList = equipmentList;
 
         if (searchTerm) {
             const lowerCaseSearchTerm = searchTerm.toLowerCase();
-            currentFilteredList = currentFilteredList.filter(item =>
-                item.name.toLowerCase().includes(lowerCaseSearchTerm) ||
-                item.type.toLowerCase().includes(lowerCaseSearchTerm) ||
-                item.serialNumber.toLowerCase().includes(lowerCaseSearchTerm)
+            currentFilteredList = currentFilteredList.filter(equipment =>
+                equipment.name.toLowerCase().includes(lowerCaseSearchTerm) ||
+                equipment.serialNumber.toLowerCase().includes(lowerCaseSearchTerm) ||
+                equipment.type.toLowerCase().includes(lowerCaseSearchTerm)
             );
         }
 
-        if (selectedType) {
-            currentFilteredList = currentFilteredList.filter(item => item.type === selectedType);
+        if (filterCondition) {
+            currentFilteredList = currentFilteredList.filter(equipment => equipment.condition === filterCondition);
         }
 
-        if (selectedCondition) {
-            currentFilteredList = currentFilteredList.filter(item => item.condition === selectedCondition);
+        if (filterType) {
+            currentFilteredList = currentFilteredList.filter(equipment => equipment.type === filterType);
         }
 
         return currentFilteredList;
-    }, [allEquipment, searchTerm, selectedType, selectedCondition]);
+    }, [equipmentList, searchTerm, filterCondition, filterType]);
 
-    const selectedEquipment = useMemo(() => {
-        return allEquipment.filter(item => selectedEquipmentIds.includes(item.id));
-    }, [allEquipment, selectedEquipmentIds]);
-
-
-    const handleSearchInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchTerm(event.target.value);
+    const handleCheckboxChange = useCallback((id: number) => {
+        setSelectedEquipment(prevSelected =>
+            prevSelected.includes(id)
+                ? prevSelected.filter(eqId => eqId !== id)
+                : [...prevSelected, id]
+        );
     }, []);
 
-    const toggleFilterPanel = useCallback(() => {
-        setIsFilterPanelOpen(prev => !prev);
+    const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value);
     }, []);
 
-    const handleTypeChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedType(event.target.value === '' ? null : event.target.value);
+    const handleConditionFilterChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+        setFilterCondition(e.target.value as EquipmentCondition | '');
     }, []);
 
-    const handleConditionChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedCondition(event.target.value === '' ? null : event.target.value as EquipmentCondition);
-    }, []);
-
-    const applyFilters = useCallback(() => {
-        const newSearchParams = new URLSearchParams();
-
-        if (searchTerm) {
-            newSearchParams.set('search', searchTerm);
-        }
-        if (selectedType) {
-            newSearchParams.set('type', selectedType);
-        }
-        if (selectedCondition) {
-            newSearchParams.set('condition', selectedCondition);
-        }
-
-        router.replace(`?${newSearchParams.toString()}`);
-        setIsFilterPanelOpen(false);
-    }, [searchTerm, selectedType, selectedCondition, router]);
-
-    const resetFilters = useCallback(() => {
-        setSearchTerm('');
-        setSelectedType(null);
-        setSelectedCondition(null);
-        router.replace('');
-        setIsFilterPanelOpen(false);
-    }, [router]);
-
-    const handleFormSubmit = useCallback((event: React.FormEvent) => {
-        event.preventDefault();
-        applyFilters();
-    }, [applyFilters]);
-
-    const handleToggleSelectMode = useCallback(() => {
-        setIsSelectMode(prev => !prev);
-        setIsFilterPanelOpen(false);
-    }, []);
-
-    const handleSelectEquipment = useCallback((id: number) => {
-        const item = allEquipment.find(eq => eq.id === id);
-        if (item && item.condition === EquipmentCondition.AVAILABLE) {
-            setSelectedEquipmentIds(prev =>
-                prev.includes(id)
-                    ? prev.filter(selectedId => selectedId !== id)
-                    : [...prev, id]
-            );
-        }
-    }, [allEquipment]);
-
-    const handleRemoveSelectedEquipment = useCallback((id: number) => {
-        setSelectedEquipmentIds(prev => prev.filter(selectedId => selectedId !== id));
+    const handleTypeFilterChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+        setFilterType(e.target.value);
     }, []);
 
     const handleRequestSelected = useCallback(() => {
-        if (selectedEquipmentIds.length === 0) {
-            alert("Please select at least one item to request.");
-            return;
+        if (selectedEquipment.length > 0) {
+            const selectedAvailableEquipment = selectedEquipment.filter(id => {
+                const eq = equipmentList.find(e => e.id === id);
+                return eq && eq.condition === EquipmentCondition.AVAILABLE;
+            });
+
+            if (selectedAvailableEquipment.length > 0) {
+                const idsParam = selectedAvailableEquipment.join(',');
+                router.push(`/request?ids=${idsParam}`);
+            } else {
+                alert("Please select available equipment to request.");
+            }
+        } else {
+            alert("Please select at least one piece of equipment to request.");
         }
-        const idsString = selectedEquipmentIds.join(',');
-        router.push(`/request/create?ids=${idsString}`);
-        setIsSelectMode(false);
-        setSelectedEquipmentIds([]);
-    }, [selectedEquipmentIds, router]);
+    }, [selectedEquipment, equipmentList, router]);
 
-
-    const handleCancelSelection = useCallback(() => {
-        setIsSelectMode(false);
-        setSelectedEquipmentIds([]);
-    }, []);
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center h-screen bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300">
-                Loading equipment...
+            <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
+                <p className="text-gray-700 dark:text-gray-300">Loading equipment data...</p>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="flex justify-center items-center h-screen bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300">
-                Error: {error}
+            <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 p-4 rounded-lg">
+                <p className="text-xl font-semibold mb-4">Error: {error}</p>
+                <button
+                    onClick={() => window.location.reload()}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                    Retry
+                </button>
             </div>
         );
     }
 
     return (
-        <>
-            <div className={`transition-all duration-300 ease-in-out ${isFilterPanelOpen ? 'blur-sm brightness-50 pointer-events-none' : ''}`}>
-                <div className="flex justify-between items-center max-w-lg mx-auto mb-8">
-                    <form className="flex items-center w-full" onSubmit={handleFormSubmit}>
-                        <div className="relative w-full">
-                            <input
-                                type="text"
-                                id="search"
-                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                placeholder="Search equipment..."
-                                value={searchTerm}
-                                onChange={handleSearchInputChange}
-                            />
-                            <button
-                                type="button"
-                                className="absolute inset-y-0 start-0 flex items-center ps-3"
-                                onClick={toggleFilterPanel}
-                                title="Open Filters"
-                            >
-                                <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                    <path stroke="currentColor" strokeLinecap="round" strokeWidth="2" d="M6 4v10m0 0a2 2 0 1 0 0 4m0-4a2 2 0 1 1 0 4m0 0v2m6-16v2m0 0a2 2 0 1 0 0 4m0-4a2 2 0 1 1 0 4m0 0v10m6-16v10m0 0a2 2 0 1 0 0 4m0-4a2 2 0 1 1 0 4m0 0v2"/>
-                                </svg>
-                            </button>
-                        </div>
-                        <button type="submit" className="inline-flex items-center py-2.5 px-3 ms-2 text-sm font-medium text-white bg-blue-700 rounded-lg border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                            <svg className="w-4 h-4 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
-                            </svg>Search
-                        </button>
-                    </form>
-                </div>
+        <div className="container mx-auto p-4">
+            <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">Available Equipment</h1>
 
-                <div className="flex justify-center max-w-lg mx-auto mb-8 space-x-4">
-                    <button
-                        onClick={handleToggleSelectMode}
-                        className={`px-6 py-2 rounded-lg shadow-md transition-colors duration-200
-                                ${isSelectMode ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}
-                                text-white`}
-                    >
-                        {isSelectMode ? 'Exit Selection Mode' : 'Select Equipment for Request'}
-                    </button>
-                </div>
-
-                {selectedEquipment.length > 0 && (
-                    <div className="container mx-auto p-4 bg-yellow-50 dark:bg-yellow-950 shadow-md rounded-lg mb-8 border border-yellow-200 dark:border-yellow-800">
-                        <h2 className="text-xl font-bold text-yellow-800 dark:text-yellow-200 mb-4">
-                            Selected Items ({selectedEquipment.length})
-                        </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                            {selectedEquipment.map((equipment) => (
-                                <div
-                                    key={`selected-${equipment.id}`}
-                                    className="flex items-center justify-between p-3 bg-yellow-100 dark:bg-yellow-900 rounded-md shadow-sm border border-yellow-300 dark:border-yellow-700"
-                                >
-                                    <div className="flex items-center">
-                                        <img
-                                            src={equipment.pathToPhoto}
-                                            alt={equipment.name}
-                                            className="w-10 h-10 object-cover rounded-full mr-3"
-                                        />
-                                        <div>
-                                            <p className="font-semibold text-yellow-900 dark:text-yellow-100">{equipment.name}</p>
-                                            <p className="text-sm text-yellow-700 dark:text-yellow-300">{equipment.serialNumber}</p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => handleRemoveSelectedEquipment(equipment.id)}
-                                        className="p-1 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200"
-                                        title="Remove from selection"
-                                    >
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                                        </svg>
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="flex justify-end space-x-4 pt-4 border-t border-yellow-200 dark:border-yellow-800">
-                            <button
-                                onClick={handleCancelSelection}
-                                className="px-6 py-2 bg-gray-400 text-white rounded-lg shadow-md hover:bg-gray-500 transition-colors duration-200"
-                            >
-                                Clear All Selections
-                            </button>
-                            <button
-                                onClick={handleRequestSelected}
-                                disabled={selectedEquipmentIds.length === 0}
-                                className={`px-6 py-2 rounded-lg shadow-md transition-colors duration-200
-                                    ${selectedEquipmentIds.length > 0
-                                        ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                        : 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                                    }`}
-                            >
-                                Proceed to Request ({selectedEquipmentIds.length})
-                            </button>
-                        </div>
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Filters & Search</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label htmlFor="search" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Search Equipment</label>
+                        <input
+                            type="text"
+                            id="search"
+                            placeholder="Search by name, serial number, or type..."
+                            className="w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                            value={searchTerm}
+                            onChange={handleSearchChange}
+                        />
                     </div>
-                )}
-
-
-                <div className="container mx-auto p-4 bg-white dark:bg-gray-800 shadow-md rounded-lg mt-8">
-                    {filteredEquipment.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {filteredEquipment.map((equipment) => (
-                                <div
-                                    key={equipment.id}
-                                    onClick={() => {
-                                        if (isSelectMode) {
-                                            handleSelectEquipment(equipment.id);
-                                        } else {
-                                            router.push(`/equipment/${equipment.id}`);
-                                        }
-                                    }}
-                                    className={`block bg-gray-50 dark:bg-gray-700 p-6 rounded-lg shadow-sm
-                                               hover:shadow-md transition-shadow duration-200
-                                               ${isSelectMode ? 'cursor-pointer' : 'cursor-pointer'}
-                                               ${selectedEquipmentIds.includes(equipment.id)
-                                                ? 'border-4 border-blue-500 ring-2 ring-blue-300'
-                                                : (isSelectMode ? 'border-2 border-gray-300 dark:border-gray-600 hover:border-blue-300' : '')
-                                               }
-                                               group hover:bg-gray-100 dark:hover:bg-gray-600`}
-                                >
-                                    <img
-                                        src={equipment.pathToPhoto}
-                                        alt={equipment.name}
-                                        className="w-32 h-32 object-cover rounded-full mb-4 border-2 border-gray-300 dark:border-gray-600
-                                                   group-hover:border-blue-500 transition-colors duration-200"
-                                    />
-                                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-700 dark:group-hover:text-blue-300">
-                                        {equipment.name}
-                                    </h2>
-                                    <p className="text-gray-700 dark:text-gray-300 mb-1">
-                                        Type: {equipment.type}
-                                    </p>
-                                    <p className="text-gray-700 dark:text-gray-300 mb-1">
-                                        Serial: {equipment.serialNumber}
-                                    </p>
-                                    <p className="text-gray-700 dark:text-gray-300 mb-1">
-                                        Room: {equipment.room}
-                                    </p>
-                                    <span
-                                        className={`px-3 py-1 rounded-full text-xs font-medium mt-3 ${getConditionColor(
-                                            equipment.condition
-                                        )}`}
-                                    >
-                                        {equipment.condition.replace(/_/g, ' ')}
-                                    </span>
-                                    {equipment.updatedAt && (
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                                            Updated: {new Date(equipment.updatedAt).toLocaleDateString()}
-                                        </p>
-                                    )}
-                                    {equipment.createdAt && (
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                                            Created: {new Date(equipment.createdAt).toLocaleDateString()}
-                                        </p>
-                                    )}
-                                    {isSelectMode && equipment.condition !== EquipmentCondition.AVAILABLE && (
-                                        <p className="text-xs text-red-500 dark:text-red-400 mt-2 font-bold">
-                                            ({equipment.condition.replace(/_/g, ' ')}) - Cannot Select
-                                        </p>
-                                    )}
-                                </div>
+                    <div>
+                        <label htmlFor="conditionFilter" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Filter by Condition</label>
+                        <select
+                            id="conditionFilter"
+                            className="w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                            value={filterCondition}
+                            onChange={handleConditionFilterChange}
+                        >
+                            <option value="">All Conditions</option>
+                            {Object.values(EquipmentCondition).map(condition => (
+                                <option key={condition} value={condition}>{condition.replace(/_/g, ' ')}</option>
                             ))}
-                        </div>
-                    ) : (
-                        <p className="text-center text-gray-600 dark:text-gray-400 mt-8">No equipment found matching your search.</p>
-                    )}
+                        </select>
+                    </div>
+                    <div>
+                        <label htmlFor="typeFilter" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Filter by Type</label>
+                        <select
+                            id="typeFilter"
+                            className="w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                            value={filterType}
+                            onChange={handleTypeFilterChange}
+                        >
+                            <option value="">All Types</option>
+                            {availableEquipmentTypes.map(type => (
+                                <option key={type} value={type}>{type}</option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
             </div>
 
-            {isFilterPanelOpen && (
-                <>
-                    <div
-                        className={`fixed inset-y-0 right-0 w-80 bg-white dark:bg-gray-800 shadow-lg transform
-                        ${isFilterPanelOpen ? 'translate-x-0' : 'translate-x-full'}
-                        transition-transform duration-300 ease-in-out z-[100] p-6 flex flex-col`}
-                    >
-                        <div className="flex justify-between items-center mb-6 border-b pb-4 dark:border-gray-700">
-                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Filters</h2>
-                            <button
-                                onClick={toggleFilterPanel}
-                                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none"
-                                aria-label="Close filters"
-                            >
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                            </button>
-                        </div>
-
-                        <div className="mb-6">
-                            <label htmlFor="equipmentType" className="block text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Type
-                            </label>
-                            <select
-                                id="equipmentType"
-                                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm
-                                           dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                value={selectedType || ''}
-                                onChange={handleTypeChange}
-                            >
-                                <option value="">All Types</option>
-                                {uniqueTypes.map(type => (
-                                    <option key={type} value={type}>{type}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="mb-6">
-                            <label htmlFor="equipmentCondition" className="block text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Condition
-                            </label>
-                            <select
-                                id="equipmentCondition"
-                                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm
-                                           dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                value={selectedCondition || ''}
-                                onChange={handleConditionChange}
-                            >
-                                <option value="">All Conditions</option>
-                                {allConditions.map(condition => (
-                                    <option key={condition} value={condition}>
-                                        {condition.replace(/_/g, ' ')}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="flex flex-col gap-4 mt-auto pt-6 border-t dark:border-gray-700">
-                            <button
-                                onClick={applyFilters}
-                                className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-blue-700 dark:hover:bg-blue-800"
-                            >
-                                Apply Filters
-                            </button>
-                            <button
-                                onClick={resetFilters}
-                                className="w-full py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600"
-                            >
-                                Reset Filters
-                            </button>
-                        </div>
-                    </div>
-                </>
+            {filteredEquipment.length === 0 ? (
+                <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md text-center">
+                    <p className="text-gray-600 dark:text-gray-400 text-lg">No equipment found matching your criteria.</p>
+                </div>
+            ) : (
+                <div className="overflow-x-auto bg-white dark:bg-gray-800 rounded-lg shadow-md">
+                    <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                        <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                            <tr>
+                                <th scope="col" className="p-4">
+                                    <div className="flex items-center">
+                                        <input
+                                            id="checkbox-all-search"
+                                            type="checkbox"
+                                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    setSelectedEquipment(filteredEquipment.filter(eq => eq.condition === EquipmentCondition.AVAILABLE).map(eq => eq.id));
+                                                } else {
+                                                    setSelectedEquipment([]);
+                                                }
+                                            }}
+                                            checked={selectedEquipment.length > 0 && selectedEquipment.length === filteredEquipment.filter(eq => eq.condition === EquipmentCondition.AVAILABLE).length}
+                                        />
+                                        <label htmlFor="checkbox-all-search" className="sr-only">checkbox</label>
+                                    </div>
+                                </th>
+                                <th scope="col" className="px-6 py-3">
+                                    Equipment Name
+                                </th>
+                                <th scope="col" className="px-6 py-3">
+                                    Serial Number
+                                </th>
+                                <th scope="col" className="px-6 py-3">
+                                    Type
+                                </th>
+                                <th scope="col" className="px-6 py-3">
+                                    Room
+                                </th>
+                                <th scope="col" className="px-6 py-3">
+                                    Condition
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredEquipment.map((equipment) => (
+                                <tr key={equipment.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                    <td className="w-4 p-4">
+                                        <div className="flex items-center">
+                                            <input
+                                                id={`checkbox-table-search-${equipment.id}`}
+                                                type="checkbox"
+                                                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                                                checked={selectedEquipment.includes(equipment.id)}
+                                                onChange={() => handleCheckboxChange(equipment.id)}
+                                                disabled={equipment.condition !== EquipmentCondition.AVAILABLE}
+                                            />
+                                            <label htmlFor={`checkbox-table-search-${equipment.id}`} className="sr-only">checkbox</label>
+                                        </div>
+                                    </td>
+                                    <th scope="row" className="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
+                                        <img className="w-10 h-10 rounded-full" src={equipment.pathToPhoto} alt={`${equipment.name} image`} />
+                                        <div className="ps-3">
+                                            <div className="text-base font-semibold">{equipment.name}</div>
+                                        </div>
+                                    </th>
+                                    <td className="px-6 py-4">
+                                        {equipment.serialNumber}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {equipment.type}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {equipment.room}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center">
+                                            <div className={`h-2.5 w-2.5 rounded-full ${getConditionColor(equipment.condition)} me-2`}></div>
+                                            {equipment.condition.replace(/_/g, ' ')}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             )}
-        </>
+
+            {user && !user.isAdmin && (
+                <div className="flex justify-end mt-6">
+                    <button
+                        onClick={handleRequestSelected}
+                        disabled={selectedEquipment.length === 0}
+                        className={`px-6 py-3 rounded-lg text-white font-semibold transition-colors duration-200
+                        ${selectedEquipment.length === 0
+                                ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'
+                                : 'bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800'
+                            }`}
+                    >
+                        Request Selected Equipment ({selectedEquipment.length})
+                    </button>
+                </div>
+            )}
+        </div>
     );
 }
