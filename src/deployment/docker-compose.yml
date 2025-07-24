@@ -1,6 +1,7 @@
 services:
-  db:
+  auth-postgres-db:
     image: postgres:16
+    container_name: auth-postgres-db
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-root}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-root}
@@ -13,9 +14,9 @@ services:
       - app-network
     restart: unless-stopped
 
-  redis:
+  api-gateway-redis:
     image: redis:7-alpine
-    container_name: redis
+    container_name: api-gateway-redis
     ports:
       - "6379:6379"
     networks:
@@ -26,25 +27,25 @@ services:
 
   auth-service:
     build:
-      context: .
+      context: ../tip_of_the_spear/src/
       dockerfile: ./auth_service/Dockerfile
     ports:
       - "8010:8010"
     depends_on:
-      - db
+      - auth-postgres-db
     networks:
       - app-network
     restart: unless-stopped
 
   api-gateway-service:
     build:
-      context: .
+      context: ../tip_of_the_spear/src/
       dockerfile: ./api_gateway_service/Dockerfile
     ports:
       - "8009:8009"
     depends_on:
       - auth-service
-      - redis
+      - api-gateway-redis
     networks:
       - app-network
     restart: unless-stopped
