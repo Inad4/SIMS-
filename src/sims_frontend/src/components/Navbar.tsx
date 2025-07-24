@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 import { User } from "@/types/user";
+import Image from "next/image";
 
 export default function Navbar({ initialUser }: { initialUser: User | null }) {
     const [currentUser, setCurrentUser] = useState<User | null>(initialUser);
@@ -32,7 +33,7 @@ export default function Navbar({ initialUser }: { initialUser: User | null }) {
         <nav className="bg-white border-gray-200 dark:bg-gray-900">
           <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
           <Link href="/dashboard" className="flex items-center space-x-3 rtl:space-x-reverse">
-              <img src="logo.png" className="h-8" alt="Logo" />
+              <Image src="/logo.png" className="h-8" alt="Logo" width={32} height={32}/>
               <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">SIMS</span>
           </Link>
           <div className="flex items-center md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">

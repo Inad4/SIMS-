@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { EquipmentRequest, RequestStatus, Equipment, EquipmentCondition, User } from '@/types';
-import { getConditionColor } from '@/utils/utils';
 
 export default function AdminLogReturnsPage() {
     const [checkedOutRequests, setCheckedOutRequests] = useState<EquipmentRequest[]>([]);

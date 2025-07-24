@@ -3,9 +3,8 @@
 import React from 'react';
 import DashboardContent from './dashboard';
 import LandingPage from './landlngPage';
-import Link from 'next/link';
 import { User } from '@/types'; // Updated import
-
+/*
 const dummyAdminUser: User = {
     id: "admin_1",
     email: "admin@example.com",
@@ -16,6 +15,7 @@ const dummyAdminUser: User = {
     updatedAt: null,
     isAdmin: true
 };
+*/
 
 const dummyRegularUser: User = {
     id: "user_abc_1",

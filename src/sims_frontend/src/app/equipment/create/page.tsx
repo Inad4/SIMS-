@@ -61,8 +61,7 @@ export default function CreateEquipmentPage() {
         };
 
         try {
-            // Adjust this URL to your actual API endpoint for creating equipment
-            const url = '/api/equipment'; // Example API endpoint for POST
+            const url = `${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/equipment`;
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
@@ -73,21 +72,9 @@ export default function CreateEquipmentPage() {
             });
 
             if (!response.ok) {
-                let errorDetails = '';
-                try {
-                    const contentType = response.headers.get('content-type');
-                    if (contentType && contentType.includes('application/json')) {
-                        const errorData = await response.json();
-                        errorDetails = errorData.message || JSON.stringify(errorData);
-                    } else {
-                        errorDetails = await response.text();
-                    }
-                } catch (parseError) {
-                    errorDetails = response.statusText;
-                }
-                console.error(`Error: ${response.statusText} (${response.status}) - ${errorDetails}`);
+                console.error(`Error: ${response.statusText} (${response.status})`);
                 setError(`Failed to create equipment`);
-                return; // Stop execution if there's an error
+                return; 
             }
 
             const createdEquipment: Equipment = await response.json();
@@ -109,9 +96,20 @@ export default function CreateEquipmentPage() {
                 }, 1500);
             }
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Network or unexpected error creating equipment:', err);
-            setError(err.message || 'An unexpected error occurred. Please check your network connection.');
+
+            let errorMessage = 'An unexpected error occurred. Please check your network connection.';
+
+            
+            if (err instanceof Error) {
+                errorMessage = err.message;
+            } else if (typeof err === 'string') {
+                errorMessage = err;
+            }
+            
+
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }

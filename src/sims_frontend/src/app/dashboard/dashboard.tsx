@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Equipment, EquipmentCondition, User, School } from '@/types';
 import { getConditionColor } from '@/utils/utils';
+import Image from 'next/image';
 
 interface DashboardContentProps {
     user: User;
@@ -177,7 +178,7 @@ export default function DashboardContent({ user }: DashboardContentProps) {
                                                 />
                                             </td>
                                             <th scope="row" className="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
-                                                <img className="w-10 h-10 rounded-full" src={equipment.pathToPhoto} alt={`${equipment.name} image`} />
+                                                <Image className="w-10 h-10 rounded-full" src={equipment.pathToPhoto} alt={`${equipment.name} image`} />
                                                 <div className="ps-3">
                                                     <div className="text-base font-semibold">{equipment.name}</div>
                                                 </div>
@@ -293,7 +294,7 @@ export default function DashboardContent({ user }: DashboardContentProps) {
                                                 type="checkbox"
                                                 className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                                                 onChange={(e) => {
-                                                    if (e.target.checked) {
+                                                    if (e.target.checked && availableFilteredEquipment) {
                                                         setSelectedEquipmentList(prevSelected => [
                                                             ...prevSelected,
                                                             ...availableFilteredEquipment.filter(
@@ -306,7 +307,7 @@ export default function DashboardContent({ user }: DashboardContentProps) {
                                                         ));
                                                     }
                                                 }}
-                                                checked={availableFilteredEquipment?.length > 0 && availableFilteredEquipment?.every(eq => selectedEquipmentList.some(sEq => sEq.id === eq.id))}
+                                                checked={availableFilteredEquipment && availableFilteredEquipment.length > 0 && availableFilteredEquipment.every(eq => selectedEquipmentList.some(sEq => sEq.id === eq.id))}
                                             />
                                             <label htmlFor="checkbox-all-search" className="sr-only">checkbox</label>
                                         </div>
@@ -353,7 +354,7 @@ export default function DashboardContent({ user }: DashboardContentProps) {
                                         )}
                                     </td>
                                     <th scope="row" className="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
-                                        <img className="w-10 h-10 rounded-full" src={equipment.pathToPhoto} alt={`${equipment.name} image`} />
+                                        <Image className="w-10 h-10 rounded-full" src={equipment.pathToPhoto} alt={`${equipment.name} image`} />
                                         <div className="ps-3">
                                             <div className="text-base font-semibold">{equipment.name}</div>
                                         </div>

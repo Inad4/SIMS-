@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose'; // For verifying the JWT
 import "./globals.css";

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { EquipmentRequest, RequestStatus, Equipment, User, EquipmentCondition } from '@/types';
 import { getConditionColor } from '@/utils/utils';
+import Image from 'next/image';
 
 export default function PersonalBorrowingHistoryPage() {
     const [borrowingHistory, setBorrowingHistory] = useState<EquipmentRequest[]>([]);
@@ -179,7 +180,7 @@ export default function PersonalBorrowingHistoryPage() {
                                     {request.equipment && request.equipment.length > 0 ? (
                                         request.equipment.map(eq => (
                                             <li key={eq.id} className="flex items-center text-gray-700 dark:text-gray-300">
-                                                <img src={eq.pathToPhoto} alt={eq.name} className="w-8 h-8 rounded-full mr-3" />
+                                                <Image src={eq.pathToPhoto} alt={eq.name} className="w-8 h-8 rounded-full mr-3" />
                                                 <span>{eq.name} (Serial: {eq.serialNumber})</span>
                                             </li>
                                         ))

@@ -11,7 +11,7 @@ export default function LoginPage() {
     const [errorMessage, setErrorMessage] = useState('');
     const router = useRouter();
 
-    let handleLogin = async () => {
+    const handleLogin = async () => {
         setErrorMessage("");
 
         try {

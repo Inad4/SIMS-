@@ -1,14 +1,24 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { Equipment, EquipmentCondition } from '@/types/equipment';
 import { getConditionColor } from '@/utils/utils';
 import { generateQrCodePdf } from '@/utils/utils';
+import Image from 'next/image';
 
-export default function EquipmentDetailPage({ params }: { params: { id: string } }) {
+
+interface PageProps {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+
+export default function EquipmentDetailPage({ params }: PageProps) {
   const router = useRouter();
-  const id = params.id;
+  
+  const { id } = params as unknown as {id: string;};
   const user = { role: "admin" };
 
   const [equipment, setEquipment] = useState<Equipment | null>(null);
@@ -73,12 +83,12 @@ export default function EquipmentDetailPage({ params }: { params: { id: string }
     <div className="container mx-auto p-8 bg-white dark:bg-gray-800 shadow-lg rounded-lg mt-8">
       <h1 className="text-4xl font-bold mb-6 text-gray-900 dark:text-white">{equipment.name}</h1>
       <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-        <img src={equipment.pathToPhoto} alt={equipment.name} className="w-64 h-64 object-cover rounded-lg shadow-md" />
+        <Image src={equipment.pathToPhoto} alt={equipment.name} className="w-64 h-64 object-cover rounded-lg shadow-md" />
         <div>
           <p className="text-xl text-gray-800 dark:text-gray-200 mb-2">Type: {equipment.type}</p>
           <p className="text-xl text-gray-800 dark:text-gray-200 mb-2">Serial Number: {equipment.serialNumber}</p>
           <p className="text-xl text-gray-800 dark:text-gray-200 mb-2">Room: {equipment.room}</p>
-          <p className="text-xl text-gray-800 dark:text-gray-200 mb-2">Condition: <span className={`px-3 py-1 rounded-full font-semibold ${getConditionColor(equipment.condition as any)}`}>{equipment.condition.replace(/_/g, ' ')}</span></p>
+          <p className="text-xl text-gray-800 dark:text-gray-200 mb-2">Condition: <span className={`px-3 py-1 rounded-full font-semibold ${getConditionColor(equipment.condition)}`}>{equipment.condition.replace(/_/g, ' ')}</span></p>
           {equipment.createdAt && <p className="text-sm text-gray-600 dark:text-gray-400 mt-4">Created: {new Date(equipment.createdAt).toLocaleDateString()}</p>}
           {equipment.updatedAt && <p className="text-sm text-gray-600 dark:text-gray-400">Last Updated: {new Date(equipment.updatedAt).toLocaleDateString()}</p>}
         </div>

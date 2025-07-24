@@ -153,9 +153,9 @@ export default function LandingPage() {
             {/* Call to Action Section */}
             <section className="bg-indigo-700 text-white py-16 md:py-20 text-center mt-12 rounded-xl shadow-lg mx-4 md:mx-auto max-w-6xl">
                 <div className="container mx-auto px-6 md:px-10 lg:px-16">
-                    <h2 className="text-3xl md:text-5xl font-bold mb-6">Optimize Your School's Resources</h2>
+                    <h2 className="text-3xl md:text-5xl font-bold mb-6">Optimize Your School&apos;s Resources</h2>
                     <p className="text-lg md:text-xl mb-10 max-w-2xl mx-auto opacity-90">
-                        Take control of your school's inventory with SIMS and focus more on education.
+                        Take control of your school&apos;s inventory with SIMS and focus more on education.
                     </p>
                     <a href="#contact-us" className="bg-teal-400 text-indigo-900 px-10 py-4 rounded-full font-bold text-lg shadow-xl hover:bg-teal-300 transition duration-300 transform hover:scale-105">
                         Contact Us for a Quote

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 export default function SignUpPage() {
@@ -61,7 +62,7 @@ export default function SignUpPage() {
         <section className="bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center py-8">
             <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto w-full max-w-md">
                 <Link href="/" className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
-                    <img className="w-8 h-8 mr-2 rounded-full" src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/logo.svg" alt="logo" />
+                    <Image className="w-8 h-8 mr-2 rounded-full" src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/logo.svg" alt="logo" />
                     SIMS
                 </Link>
                 <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 xl:p-0 dark:bg-gray-800 dark:border-gray-700">
