@@ -29,3 +29,50 @@ export function getUniqueTypes(equipment: Equipment[]): string[] {
     equipment.forEach(item => types.add(item.type));
     return Array.from(types).sort();
 }
+
+
+
+import { jsPDF } from 'jspdf';
+import QRCode from 'qrcode';
+
+/**
+ * Generates a PDF document containing a QR code that links to the specified URL.
+ * The PDF will automatically download with the given filename.
+ *
+ * @param {string} link The URL that the QR code should encode.
+ * @param {string} [filename='qrcode.pdf'] The name of the PDF file to be downloaded.
+ * @returns {Promise<void>} A promise that resolves when the PDF has been generated and downloaded.
+ */
+export async function generateQrCodePdf(link: string, filename: string = 'qrcode.pdf'): Promise<void> {
+    try {
+        // Generate QR Code as a Data URL (Base64 image)
+        const qrCodeDataUrl = await QRCode.toDataURL(link, {
+            errorCorrectionLevel: 'H', // High error correction level
+            margin: 1,                
+            width: 200,                
+        });
+
+        const doc = new jsPDF();
+
+        
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const qrCodeSize = 80;
+        const qrCodeX = (pageWidth - qrCodeSize) / 2;
+        const qrCodeY = (pageHeight - qrCodeSize) / 2 - 10;
+
+
+        // Add the QR code image
+        doc.addImage(qrCodeDataUrl, 'PNG', qrCodeX, qrCodeY, qrCodeSize, qrCodeSize);
+
+        // Save the PDF, triggering a download
+        doc.save(filename);
+
+        console.log(`QR Code PDF for "${link}" generated as "${filename}"`);
+
+    } catch (error) {
+        console.error('Error generating QR Code PDF:', error);
+        throw new Error('Failed to generate QR Code PDF.');
+    }
+}
+
