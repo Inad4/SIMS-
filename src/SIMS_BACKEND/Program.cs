@@ -1,5 +1,4 @@
 
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SIMS_BACKEND;
 using SharedModels;
@@ -22,22 +21,6 @@ catch
 {
     Console.WriteLine("db connection failed");
 }
-
-
-// Configure Identity
-builder.Services.AddIdentity<User, IdentityRole>(options =>
-{
-    options.SignIn.RequireConfirmedAccount = false;
-    options.User.RequireUniqueEmail = true;
-    options.Password.RequireDigit = true;
-    options.Password.RequireLowercase = true;
-    options.Password.RequireNonAlphanumeric = true;
-    options.Password.RequireUppercase = true;
-    options.Password.RequiredLength = 8;
-    options.Password.RequiredUniqueChars = 1;
-})
-.AddEntityFrameworkStores<SharedDbContext>()
-.AddDefaultTokenProviders();
 
 // Add controllers and Swagger
 builder.Services.AddControllers();
@@ -65,6 +48,8 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
+    app.UseSwagger();
+    app.UseSwaggerUI();
     app.UseExceptionHandler("/Error");
     app.UseHsts();
 }

@@ -50,6 +50,17 @@ services:
       - app-network
     restart: unless-stopped
 
+  backend-service:
+    build:
+      context: ../
+      dockerfile: ./SIMS_BACKEND/Dockerfile
+    ports:
+      - "5128:5128"
+      - "8080:8080"
+    networks:
+      - app-network
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   redis_data:
