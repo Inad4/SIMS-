@@ -1,0 +1,9 @@
+[package]
+name = "crypto"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+env = { path = "../env" }
+argon2 = "0.5.3"
+rand = "0.8.5"

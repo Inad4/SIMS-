@@ -1,21 +1,24 @@
-'use client'
+"use client";
+
 
 import React from 'react';
 import DashboardContent from './dashboard';
 import LandingPage from './landlngPage';
 import { User } from '@/types'; // Updated import
 /*
+
 const dummyAdminUser: User = {
-    id: "admin_1",
-    email: "admin@example.com",
-    firstName: "Admin",
-    lastName: "User",
-    schoolId: 1,
-    createdAt: null,
-    updatedAt: null,
-    isAdmin: true
+  id: "admin_1",
+  email: "admin@example.com",
+  firstName: "Admin",
+  lastName: "User",
+  schoolId: 1,
+  createdAt: null,
+  updatedAt: null,
+  isAdmin: true,
 };
 */
+
 
 const dummyRegularUser: User = {
     id: "user_abc_1",

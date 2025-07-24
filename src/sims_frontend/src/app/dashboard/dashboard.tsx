@@ -1,4 +1,6 @@
+
 'use client';
+
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
@@ -144,8 +146,34 @@ export default function DashboardContent({ user }: DashboardContentProps) {
                 </button>
             </div>
         );
-    }
+      }
+    },
+    [allEquipment],
+  );
 
+  const handleRemoveSelectedEquipment = useCallback((id: number) => {
+    setSelectedEquipmentIds((prev) =>
+      prev.filter((selectedId) => selectedId !== id),
+    );
+  }, []);
+
+  const handleRequestSelected = useCallback(() => {
+    if (selectedEquipmentIds.length === 0) {
+      alert("Please select at least one item to request.");
+      return;
+    }
+    const idsString = selectedEquipmentIds.join(",");
+    router.push(`/request/create?ids=${idsString}`);
+    setIsSelectMode(false);
+    setSelectedEquipmentIds([]);
+  }, [selectedEquipmentIds, router]);
+
+  const handleCancelSelection = useCallback(() => {
+    setIsSelectMode(false);
+    setSelectedEquipmentIds([]);
+  }, []);
+
+  if (loading) {
     return (
         <div className="container mx-auto p-4">
 

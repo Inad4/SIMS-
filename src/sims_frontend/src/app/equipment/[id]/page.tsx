@@ -1,4 +1,5 @@
-'use client';
+"use client";
+
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -81,7 +82,9 @@ export default function EquipmentDetailPage({ params }: PageProps) {
   if (!equipment) return <></>;
   return (
     <div className="container mx-auto p-8 bg-white dark:bg-gray-800 shadow-lg rounded-lg mt-8">
-      <h1 className="text-4xl font-bold mb-6 text-gray-900 dark:text-white">{equipment.name}</h1>
+      <h1 className="text-4xl font-bold mb-6 text-gray-900 dark:text-white">
+        {equipment.name}
+      </h1>
       <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
         <Image src={equipment.pathToPhoto} alt={equipment.name} className="w-64 h-64 object-cover rounded-lg shadow-md" />
         <div>

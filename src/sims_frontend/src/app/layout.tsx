@@ -8,6 +8,7 @@ import Navbar from "@/components/Navbar";
 import FlowbiteProvider from "@/components/FlowbiteProvider";
 import { User } from "@/types/user";
 
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -23,10 +24,12 @@ export const metadata: Metadata = {
   description: "School inventory management system",
 };
 
-
 //const inter = Inter({ subsets: ['latin'] });
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'secret_jwt_key');
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || "secret_jwt_key",
+);
+
 
 
 export default async function RootLayout({
@@ -58,13 +61,14 @@ export default async function RootLayout({
         updatedAt: null,
         isAdmin: true
     };
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <FlowbiteProvider />
-        <Navbar initialUser={user}/>
+        <Navbar initialUser={user} />
         {children}
       </body>
     </html>

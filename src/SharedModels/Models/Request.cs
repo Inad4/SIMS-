@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace SharedModels;
 
 
@@ -23,5 +25,6 @@ public class Request
     public ICollection<Equipment> Equipment { get; set; } = null!;
     public string UserId { get; set; } = null!;
     public User User { get; set; } = null!;
-
+    public DateTime RejectedAt { get; set; }
+    public DateTime ApprovedAt { get; set; }
 }

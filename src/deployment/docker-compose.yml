@@ -1,0 +1,93 @@
+services:
+  auth-postgres-db:
+    image: postgres:16
+    container_name: auth-postgres-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-root}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-root}
+      POSTGRES_DB: ${POSTGRES_DB:-aibest}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  api-gateway-redis:
+    image: redis:7-alpine
+    container_name: api-gateway-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  auth-service:
+    build:
+      context: ../tip_of_the_spear/src/
+      dockerfile: ./auth_service/Dockerfile
+    ports:
+      - "8010:8010"
+    depends_on:
+      - auth-postgres-db
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  api-gateway-service:
+    build:
+      context: ../tip_of_the_spear/src/
+      dockerfile: ./api_gateway_service/Dockerfile
+    ports:
+      - "8009:8009"
+    depends_on:
+      - auth-service
+      - api-gateway-redis
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  backend-service:
+    build:
+      context: ../
+      dockerfile: ./SIMS_BACKEND/Dockerfile
+    ports:
+      - "5128:5128"
+      - "8080:8080"
+    networks:
+      - app-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  app-network:
+    driver: bridge
+
+  # otel-lgtm:
+  #   image: grafana/otel-lgtm
+  #   container_name: otel-lgtm
+  #   ports:
+  #     - "3000:3000" # Grafana Web UI
+  #     - "4317:4317" # OTLP gRPC receiver
+  #     - "4318:4318" # OTLP HTTP receiver
+  #   # environment:
+  #   #   - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+  #   #   - OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+  #   volumes:
+  #     - lgtm_data:/data
+  #   restart: unless-stopped
+  # cpus: 0.5
+  # mem_limit: 512m
+  # deploy:
+  #   resources:
+  #     limits:
+  #       cpus: "0.5"
+  #       memory: 512M
+  #     reservations:
+  #       cpus: "0.25"

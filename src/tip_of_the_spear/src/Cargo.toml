@@ -1,0 +1,14 @@
+[workspace]
+members = [
+    "api_gateway_service",
+    "api_gateway",
+    "test_service",
+    "env",
+    "config_yaml",
+    "error",
+    "auth",
+    "auth_service",
+    "db",
+    "utils",
+    "crypto"
+, "caching"]
