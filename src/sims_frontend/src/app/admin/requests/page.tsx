@@ -2,14 +2,17 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { EquipmentRequest, RequestStatus, Equipment, User, EquipmentStatus, School } from '@/types';
+import { EquipmentRequest, RequestStatus, EquipmentStatus, School, User } from '@/types';
 import { getConditionColor, isStringANumber } from '@/utils/utils';
 import Image from 'next/image';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { login } from '@/utils/utils';
 
 export default function AdminManageRequestsPage() {
     const searchParams = useSearchParams();
+    const router = useRouter();
 
+    const [user, setUser] = useState<User>();
     const [pendingRequests, setPendingRequests] = useState<EquipmentRequest[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -20,8 +23,16 @@ export default function AdminManageRequestsPage() {
         const fetchPendingRequests = async () => {
             setLoading(true);
             setError(null);
+
+            const us = await login();
+            if (!us || !us.isAdmin){
+                router.replace("/dashboard");
+                return;
+            }
+            setUser(us);
+
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/School/${user.schoolId}`, {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/School/${user?.schoolId}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem("jwt")}`
                     }
@@ -35,7 +46,7 @@ export default function AdminManageRequestsPage() {
                     return;
                 }
                 
-                let pendingRequestsFetched: EquipmentRequest[] = [];
+                const pendingRequestsFetched: EquipmentRequest[] = [];
                 for (const equipment of school.equipment){
                     if (equipment.status != EquipmentStatus.AVAILABLE) continue;
                     for(const request of equipment.requests){
@@ -53,7 +64,7 @@ export default function AdminManageRequestsPage() {
         };
 
         fetchPendingRequests();
-    }, []);
+    });
 
     const filteredRequests = useMemo(() => {
         if (!searchTerm) {
@@ -165,7 +176,7 @@ export default function AdminManageRequestsPage() {
 
                                 <div className="mb-4">
                                     <p className="text-gray-700 dark:text-gray-300 mb-2">
-                                        <span className="font-semibold">Requested Period:</span> {new Date(request.startDate).toLocaleDateString()} - {new Date(request.returnDate).toLocaleDateString()}
+                                        <span className="font-semibold">Requested Period:</span> {/*new Date(request.startDate).toLocaleDateString()*/"Start date"} - {/*new Date(request.returnDate).toLocaleDateString()*/"End date"}
                                     </p>
                                     <p className="text-gray-700 dark:text-gray-300">
                                         <span className="font-semibold">Message:</span> {request.message}

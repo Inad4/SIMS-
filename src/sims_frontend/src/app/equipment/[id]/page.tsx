@@ -2,9 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Equipment, EquipmentStatus } from '@/types/equipment';
-import { getConditionColor } from '@/utils/utils';
-import { generateQrCodePdf } from '@/utils/utils';
+import { Equipment, EquipmentStatus, User } from '@/types';
+import { getConditionColor, generateQrCodePdf, login } from '@/utils/utils';
 import Image from 'next/image';
 
 
@@ -19,8 +18,8 @@ export default function EquipmentDetailPage({ params }: PageProps) {
   const router = useRouter();
   
   const { id } = params as unknown as {id: string;};
-  const user = { role: "admin" };
-
+  
+  const [user, setUser] = useState<User>();
   const [equipment, setEquipment] = useState<Equipment | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +37,14 @@ export default function EquipmentDetailPage({ params }: PageProps) {
       const fetchEquipmentDetail = async () => {
         setLoading(true);
         setError(null);
+
+        const us = await login();
+        if (!us){
+            router.replace("/dashboard");
+            return;
+        }
+        setUser(us);
+
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE}/equipment/${id}`, {
                 headers: {
@@ -93,14 +100,14 @@ export default function EquipmentDetailPage({ params }: PageProps) {
           {equipment.updatedAt && <p className="text-sm text-gray-600 dark:text-gray-400">Last Updated: {new Date(equipment.updatedAt).toLocaleDateString()}</p>}
         </div>
       </div>
-      {user.role === "admin" && equipment.status === EquipmentStatus.CHECKED_OUT && 
+      {user?.isAdmin && equipment.status === EquipmentStatus.CHECKED_OUT && 
       <>
       <button onClick={() => {router.push(`/admin/returns?equipmentId=${equipment.id}`)}} className="mt-8 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
         Log Return
       </button><br />
       </>
       }
-      {user.role === "admin" && equipment.status != EquipmentStatus.CHECKED_OUT && 
+      {user?.isAdmin && equipment.status != EquipmentStatus.CHECKED_OUT && 
       <>
       <button onClick={() => router.push(`/equipment/${equipment.id}/edit`)} className="mt-8 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
         Edit

@@ -3,19 +3,17 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Equipment, EquipmentStatus, User, School } from '@/types';
-import { getConditionColor } from '@/utils/utils';
+import { getConditionColor, login } from '@/utils/utils';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
+import LandingPage from './landingPage';
 
-interface DashboardContentProps {
-    user: User;
-}
 
-export default function DashboardContent({ user }: DashboardContentProps) {
+export default function DashboardContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
-
+    const [user, setUser] = useState<User | null>(null);
     const [school, setSchool] = useState<School | null>(null); // Stores all fetched equipment
     const [selectedEquipmentList, setSelectedEquipmentList] = useState<Equipment[]>([]); // Stores full selected equipment objects
     const [loading, setLoading] = useState<boolean>(true);
@@ -33,8 +31,12 @@ export default function DashboardContent({ user }: DashboardContentProps) {
         const fetchSchool = async () => {
             setLoading(true);
             setError(null);
+
+            const us = await login();
+            setUser(us);
+
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/School/${user.schoolId}`, {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/School/${user?.schoolId}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem("jwt")}`
                     }
@@ -53,7 +55,7 @@ export default function DashboardContent({ user }: DashboardContentProps) {
         };
 
         fetchSchool();
-    }, []);
+    });
 
 
     // Effect to update URL whenever search/filter states change
@@ -182,6 +184,10 @@ export default function DashboardContent({ user }: DashboardContentProps) {
                 </button>
             </div>
         );
+    }
+
+    if (!user){
+        return <LandingPage />;
     }
 
     return (

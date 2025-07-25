@@ -2,11 +2,15 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { EquipmentRequest, RequestStatus, Equipment, EquipmentStatus, User, School } from '@/types'; // Updated import
-import { getConditionColor } from '@/utils/utils';
+import { EquipmentRequest, RequestStatus, School, User } from '@/types';
+import { getConditionColor, login } from '@/utils/utils';
 import Image from 'next/image';
+import { useRouter } from 'next/router';
 
 export default function AdminBorrowingHistoryPage() {
+
+    const router = useRouter();
+    const [user, setUser] = useState<User>();
     const [allRequests, setAllRequests] = useState<EquipmentRequest[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -16,11 +20,20 @@ export default function AdminBorrowingHistoryPage() {
 
 
     useEffect(() => {
+        
         const fetchAllRequests = async () => {
             setLoading(true);
             setError(null);
+
+            const us = await login();
+            if (!us || !us.isAdmin){
+                router.replace("/dashboard");
+                return;
+            }
+            setUser(us);
+
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/School/${user.schoolId}`, {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/School/${user?.schoolId}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem("jwt")}`
                     }
@@ -35,7 +48,7 @@ export default function AdminBorrowingHistoryPage() {
                     return;
                 }
                 
-                let schoolRequests: EquipmentRequest[] = [];
+                const schoolRequests: EquipmentRequest[] = [];
                 for (const equipment of school.equipment){
                     for(const request of equipment.requests){
                         schoolRequests.push(request);
@@ -51,7 +64,7 @@ export default function AdminBorrowingHistoryPage() {
         };
 
         fetchAllRequests();
-    }, []);
+    });
 
     const filteredRequests = useMemo(() => {
         let currentFilteredList = allRequests;
@@ -189,7 +202,7 @@ export default function AdminBorrowingHistoryPage() {
 
                                 <div className="mb-4">
                                     <p className="text-gray-700 dark:text-gray-300 mb-2">
-                                        <span className="font-semibold">Requested Period:</span> {new Date(request.startDate).toLocaleDateString()} - {new Date(request.returnDate).toLocaleDateString()}
+                                        <span className="font-semibold">Requested Period:</span> {/*new Date(request.startDate).toLocaleDateString()*/"Start date needs to be added"} - {/*new Date(request.returnDate).toLocaleDateString()*/"Start date needs to be added"}
                                     </p>
                                     {request.approvedAt && (
                                         <p className="text-gray-700 dark:text-gray-300 mb-2">

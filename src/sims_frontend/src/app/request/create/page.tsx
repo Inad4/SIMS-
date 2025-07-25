@@ -3,11 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Equipment, EquipmentRequest, User, School, EquipmentStatus } from '@/types';
+import { Equipment, User, EquipmentStatus } from '@/types';
+import { login } from '@/utils/utils';
 
 export default function RequestFormPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
+
+    const [user, setUser] = useState<User>();
     const [selectedEquipmentDetails, setSelectedEquipmentDetails] = useState<Equipment[]>([]);
     const [startDate, setStartDate] = useState<string>('');
     const [returnDate, setReturnDate] = useState<string>('');
@@ -19,10 +22,17 @@ export default function RequestFormPage() {
         const fetchEquipmentDetail = async () => {
             const idsParam = searchParams.get('ids');
             if (idsParam) {
+                const us = await login();
+                if (!us){
+                    router.replace("/dashboard");
+                    return;
+                }
+                setUser(us);
+
                 try {
                     const equipmentIds = idsParam.split(',').map(Number);
 
-                    let equipmentDetails: Equipment[] = [];
+                    const equipmentDetails: Equipment[] = [];
                     for (const id of equipmentIds){
                         const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/Equipment/${id}`, {
                             headers: {
@@ -77,7 +87,7 @@ export default function RequestFormPage() {
         const newRequestPayload = {
             message: requestMessage,
             equipmentIds: selectedEquipmentDetails.map(eq => eq.id),
-            userId: user.id,
+            userId: user?.id,
         };
 
         console.log("Submitting Request:", newRequestPayload);

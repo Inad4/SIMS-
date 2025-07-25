@@ -2,11 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { EquipmentRequest, RequestStatus, Equipment, User, EquipmentStatus, School } from '@/types';
-import { getConditionColor } from '@/utils/utils';
+import { EquipmentRequest, User, School } from '@/types';
+import { getConditionColor, login } from '@/utils/utils';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 export default function PersonalBorrowingHistoryPage() {
+    const router = useRouter();
+
+
+    const [user, setUser] = useState<User>();
     const [borrowingHistory, setBorrowingHistory] = useState<EquipmentRequest[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -17,8 +22,16 @@ export default function PersonalBorrowingHistoryPage() {
         const fetchBorrowingHistory = async () => {
             setLoading(true);
             setError(null);
+
+            const us = await login();
+            if (!us){
+                router.replace("/dashboard");
+                return;
+            }
+            setUser(us);
+
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/School/${user.schoolId}`, {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/School/${user?.schoolId}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem("jwt")}`
                     }
@@ -33,10 +46,10 @@ export default function PersonalBorrowingHistoryPage() {
                     return;
                 }
                 
-                let userRequests: EquipmentRequest[] = [];
+                const userRequests: EquipmentRequest[] = [];
                 for (const equipment of school.equipment){
                     for(const request of equipment.requests){
-                        if (request.userId != user.id) continue;
+                        if (request.userId != user?.id) continue;
                         userRequests.push(request);
                     }
                 }
@@ -51,7 +64,7 @@ export default function PersonalBorrowingHistoryPage() {
         };
 
         fetchBorrowingHistory();
-    }, []);
+    });
 
     if (loading) {
         return (
@@ -106,7 +119,7 @@ export default function PersonalBorrowingHistoryPage() {
 
                                 <div className="mb-4">
                                     <p className="text-gray-700 dark:text-gray-300 mb-2">
-                                        <span className="font-semibold">Requested Period:</span> {new Date(request.startDate).toLocaleDateString()} - {new Date(request.returnDate).toLocaleDateString()}
+                                        <span className="font-semibold">Requested Period:</span> {/*new Date(request.startDate).toLocaleDateString()*/"start date"} - {/*new Date(request.returnDate).toLocaleDateString()*/"End date"}
                                     </p>
                                     {request.approvedAt && (
                                         <p className="text-gray-700 dark:text-gray-300 mb-2">

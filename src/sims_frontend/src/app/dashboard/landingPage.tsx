@@ -1,59 +1,9 @@
-// components/LandingPage.tsx (assuming this is where it's located)
-
 import React from 'react';
-// No need for <link> or <script> tags for Tailwind or Google Fonts here
-// These should be handled globally by Next.js and Tailwind setup.
+
 
 export default function LandingPage() {
     return (
-        // Ensure your main layout/global CSS handles the body background and font.
-        // For demonstration, I'm keeping the body styles as comments,
-        // but they should ideally be in your global CSS file (e.g., globals.css).
         <div className="text-gray-800 dark:text-gray-200 min-h-screen bg-[#f0f4f8] dark:bg-gray-900">
-            {/* The following styles should be in your global CSS file (e.g., globals.css)
-                and compiled by PostCSS/Tailwind.
-                If they are already there, you can remove the <style> block.
-            */}
-            {/*
-            <style jsx global>{`
-                body {
-                    font-family: 'Inter', sans-serif;
-                    background-color: #f0f4f8; // Light blue-gray background
-                }
-                ::-webkit-scrollbar {
-                    width: 8px;
-                }
-                ::-webkit-scrollbar-track {
-                    background: #cbd5e1; // Light gray-blue track
-                    border-radius: 10px;
-                }
-                ::-webkit-scrollbar-thumb {
-                    background: #3b82f6; // Blue thumb
-                    border-radius: 10px;
-                }
-                ::-webkit-scrollbar-thumb:hover {
-                    background: #2563eb; // Darker blue on hover
-                }
-
-                @keyframes fadeInDown {
-                    from { opacity: 0; transform: translateY(-20px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                @keyframes fadeInUp {
-                    from { opacity: 0; transform: translateY(20px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                .animate-fade-in-down {
-                    animation: fadeInDown 0.8s ease-out forwards;
-                }
-                .animate-fade-in-up {
-                    animation: fadeInUp 0.8s ease-out forwards;
-                }
-                .delay-100 { animation-delay: 0.1s; }
-                .delay-200 { animation-delay: 0.2s; }
-                .delay-300 { animation-delay: 0.3s; }
-            `}</style>
-            */}
 
             {/* Hero Section */}
             <section className="bg-gradient-to-r from-blue-700 to-purple-800 text-white py-20 md:py-32 text-center rounded-b-xl shadow-lg">

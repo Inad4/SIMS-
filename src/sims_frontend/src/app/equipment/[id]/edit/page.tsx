@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Equipment, EquipmentStatus } from '@/types';
+import { Equipment, EquipmentStatus, User } from '@/types';
+import { login } from '@/utils/utils';
 
 interface PageProps {
   params: Promise<{
@@ -14,6 +15,7 @@ export default function EditEquipmentPage({ params }: PageProps) {
   const router = useRouter();
   const { id: equipmentId } = params as unknown as { id: string };
 
+  const [user, setUser] = useState<User>();
   const [name, setName] = useState<string>('');
   const [room, setRoom] = useState<string>('');
   const [pathToPhoto, setPathToPhoto] = useState<string>('');
@@ -37,6 +39,15 @@ export default function EditEquipmentPage({ params }: PageProps) {
     const fetchEquipment = async () => {
       setLoading(true);
       setError(null);
+
+      const us = await login();
+      if (!us || !us.isAdmin){
+          router.replace("/dashboard");
+          return;
+      }
+      setUser(us);
+      console.log(user?.isAdmin);
+
       try {
         const url = `${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/Equipment/${equipmentId}`;
         const response = await fetch(url, {
@@ -63,7 +74,7 @@ export default function EditEquipmentPage({ params }: PageProps) {
 
       } catch (err: unknown) {
         console.error('Network or unexpected error fetching equipment:', err);
-        let errorMessage = 'An unexpected error occurred while fetching equipment. Please check your network connection.';
+        const errorMessage = 'An unexpected error occurred while fetching equipment. Please check your network connection.';
         setError(errorMessage);
       } finally {
         setLoading(false);

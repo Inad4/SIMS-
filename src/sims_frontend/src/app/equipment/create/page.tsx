@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Equipment, EquipmentStatus } from '@/types';
+import { Equipment, EquipmentStatus, School, User } from '@/types';
+import { login } from '@/utils/utils';
 
 interface NewEquipmentPayload {
     name: string;
@@ -11,11 +12,14 @@ interface NewEquipmentPayload {
     condition: EquipmentStatus;
     type: string;
     serialNumber: string;
+    schoolId: number;
+    school: School;
 }
 
 export default function CreateEquipmentPage() {
     const router = useRouter();
 
+    const [user, setUser] = useState<User>();
     // State for form inputs
     const [name, setName] = useState<string>('');
     const [room, setRoom] = useState<string>('');
@@ -30,6 +34,18 @@ export default function CreateEquipmentPage() {
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     const [createMore, setCreateMore] = useState<boolean>(false);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            const us = await login();
+            if (!us){
+                router.replace("/dashboard");
+                return;
+            }
+            setUser(us);
+        }
+        fetchUser();
+    })
 
     const handleSubmit = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
@@ -58,6 +74,17 @@ export default function CreateEquipmentPage() {
             condition,
             type,
             serialNumber,
+            schoolId: user?.schoolId || 0,
+            school: {
+                "id": 1,
+                "name": "Test School",
+                "city": "Test City",
+                "address": "Test Address",
+                "updatedAt": null,
+                "createdAt": null,
+                "users": [],
+                "equipment": []
+            }
         };
 
         try {
@@ -70,6 +97,7 @@ export default function CreateEquipmentPage() {
                 },
                 body: JSON.stringify(newEquipment),
             });
+            console.log(`Submitting the following data: ${JSON.stringify(newEquipment, null, 4)}`)
 
             if (!response.ok) {
                 console.error(`Error: ${response.statusText} (${response.status})`);
@@ -113,7 +141,7 @@ export default function CreateEquipmentPage() {
         } finally {
             setLoading(false);
         }
-    }, [name, room, pathToPhoto, condition, type, serialNumber, router]);
+    }, [name, room, pathToPhoto, condition, type, serialNumber, router, createMore, user?.schoolId]);
 
     return (
         <div className="container mx-auto p-4 max-w-2xl">

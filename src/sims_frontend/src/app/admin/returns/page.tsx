@@ -2,9 +2,14 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { EquipmentRequest, RequestStatus, Equipment, EquipmentStatus, User, School } from '@/types';
+import { EquipmentRequest, EquipmentStatus, User, School } from '@/types';
+import { useRouter } from 'next/router';
+import { login } from '@/utils/utils';
 
 export default function AdminLogReturnsPage() {
+    const router = useRouter();
+
+    const [user, setUser] = useState<User>();
     const [checkedOutRequests, setCheckedOutRequests] = useState<EquipmentRequest[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -16,8 +21,16 @@ export default function AdminLogReturnsPage() {
         const fetchCheckedOutRequests = async () => {
             setLoading(true);
             setError(null);
+
+            const us = await login();
+            if (!us || !us.isAdmin){
+                router.replace("/dashboard");
+                return;
+            }
+            setUser(us);
+
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/School/${user.schoolId}`, {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/School/${user?.schoolId}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem("jwt")}`
                     }
@@ -31,7 +44,7 @@ export default function AdminLogReturnsPage() {
                     return;
                 }
                 
-                let checkedOutRequestsFetched: EquipmentRequest[] = [];
+                const checkedOutRequestsFetched: EquipmentRequest[] = [];
                 for (const equipment of school.equipment){
                     if (equipment.status != EquipmentStatus.CHECKED_OUT) continue;
                     for(const request of equipment.requests){
@@ -49,7 +62,7 @@ export default function AdminLogReturnsPage() {
         };
 
         fetchCheckedOutRequests();
-    }, []);
+    });
 
     const filteredRequests = useMemo(() => {
         if (!searchTerm) {

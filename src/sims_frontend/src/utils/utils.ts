@@ -1,5 +1,4 @@
-import { Equipment, EquipmentStatus } from "@/types/equipment";
-import { RequestStatus } from "@/types/request";
+import { Equipment, EquipmentStatus, RequestStatus, User } from "@/types";
 
 export function getConditionColor(status: EquipmentStatus | RequestStatus): string {
     switch (status) {
@@ -121,4 +120,23 @@ export function isStringANumber(str: string): boolean {
 
   const num = Number(str.trim());
   return !isNaN(num) && isFinite(num);
+}
+
+
+export async function login(): Promise<User | null>{
+    /*const jwt = localStorage.get("jwt");
+    if (!jwt) return null;
+
+    //check if jwt is expired -> use refresh token -> get user Id somehow -> /api/user/{id} -> return User*/
+
+    return {
+        id: "admin_1",
+        email: "admin@example.com",
+        firstName: "Admin",
+        lastName: "User",
+        schoolId: 1,
+        createdAt: null,
+        updatedAt: null,
+        isAdmin: true
+    };
 }
