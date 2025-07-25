@@ -1,21 +1,34 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { login } from '@/utils/utils';
 
 export default function LoginPage() {
 
+    
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const router = useRouter();
 
+    useEffect(() => {
+            const fetchUser = async () => {
+                const us = await login();
+                if (us){
+                    router.replace("/dashboard");
+                    return;
+                }
+            }
+            fetchUser();
+        }, [])
+
     const handleLogin = async () => {
         setErrorMessage("");
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/login`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_AUTH_BASE}/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -1,26 +1,30 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Equipment, EquipmentCondition } from '@/types';
+import { Equipment, EquipmentStatus, School, User } from '@/types';
+import { login } from '@/utils/utils';
 
 interface NewEquipmentPayload {
     name: string;
     room: number;
     pathToPhoto: string;
-    condition: EquipmentCondition;
+    condition: EquipmentStatus;
     type: string;
     serialNumber: string;
+    schoolId: number;
+    school: School;
 }
 
 export default function CreateEquipmentPage() {
     const router = useRouter();
 
+    const [user, setUser] = useState<User>();
     // State for form inputs
     const [name, setName] = useState<string>('');
     const [room, setRoom] = useState<string>('');
     const [pathToPhoto, setPathToPhoto] = useState<string>('');
-    const [condition, setCondition] = useState<EquipmentCondition>(EquipmentCondition.AVAILABLE);
+    const [condition, setCondition] = useState<EquipmentStatus>(EquipmentStatus.AVAILABLE);
     const [type, setType] = useState<string>('');
     const [serialNumber, setSerialNumber] = useState<string>('');
 
@@ -30,6 +34,18 @@ export default function CreateEquipmentPage() {
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     const [createMore, setCreateMore] = useState<boolean>(false);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            const us = await login();
+            if (!us){
+                router.replace("/dashboard");
+                return;
+            }
+            setUser(us);
+        }
+        fetchUser();
+    }, [])
 
     const handleSubmit = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
@@ -58,10 +74,21 @@ export default function CreateEquipmentPage() {
             condition,
             type,
             serialNumber,
+            schoolId: user?.schoolId || 0,
+            school: {
+                "id": 1,
+                "name": "Test School",
+                "city": "Test City",
+                "address": "Test Address",
+                "updatedAt": null,
+                "createdAt": null,
+                "users": [],
+                "equipment": []
+            }
         };
 
         try {
-            const url = `${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/equipment`;
+            const url = `${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/Equipment`;
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
@@ -70,6 +97,7 @@ export default function CreateEquipmentPage() {
                 },
                 body: JSON.stringify(newEquipment),
             });
+            console.log(`Submitting the following data: ${JSON.stringify(newEquipment, null, 4)}`)
 
             if (!response.ok) {
                 console.error(`Error: ${response.statusText} (${response.status})`);
@@ -85,7 +113,7 @@ export default function CreateEquipmentPage() {
                 setName('');
                 setRoom('');
                 setPathToPhoto('');
-                setCondition(EquipmentCondition.AVAILABLE); // Reset to default condition
+                setCondition(EquipmentStatus.AVAILABLE); // Reset to default condition
                 setType('');
                 setSerialNumber('');
                 // Keep success message visible for a short period
@@ -113,7 +141,7 @@ export default function CreateEquipmentPage() {
         } finally {
             setLoading(false);
         }
-    }, [name, room, pathToPhoto, condition, type, serialNumber, router]);
+    }, [name, room, pathToPhoto, condition, type, serialNumber, router, createMore, user?.schoolId]);
 
     return (
         <div className="container mx-auto p-4 max-w-2xl">
@@ -209,10 +237,10 @@ export default function CreateEquipmentPage() {
                         <select
                             id="condition"
                             value={condition}
-                            onChange={(e) => setCondition(e.target.value as EquipmentCondition)}
+                            onChange={(e) => setCondition(e.target.value as EquipmentStatus)}
                             className="w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                         >
-                            {Object.values(EquipmentCondition).map((cond) => (
+                            {Object.values(EquipmentStatus).map((cond) => (
                                 <option key={cond} value={cond}>
                                     {cond.replace(/_/g, ' ')}
                                 </option>

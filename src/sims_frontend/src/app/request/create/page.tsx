@@ -3,11 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Equipment, EquipmentCondition, User } from '@/types';
+import { Equipment, User, EquipmentStatus } from '@/types';
+import { login } from '@/utils/utils';
 
 export default function RequestFormPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
+
+    const [user, setUser] = useState<User>();
     const [selectedEquipmentDetails, setSelectedEquipmentDetails] = useState<Equipment[]>([]);
     const [startDate, setStartDate] = useState<string>('');
     const [returnDate, setReturnDate] = useState<string>('');
@@ -15,44 +18,50 @@ export default function RequestFormPage() {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    const dummyCurrentUser: User = {
-        id: "user123",
-        email: "current.user@example.com",
-        firstName: "Current",
-        lastName: "User",
-        schoolId: 1,
-        createdAt: null,
-        updatedAt: null,
-        isAdmin: false
-    };
-
     useEffect(() => {
-        const idsParam = searchParams.get('ids');
-        if (idsParam) {
-            try {
-                const equipmentIds = idsParam.split(',').map(Number);
+        const fetchEquipmentDetail = async () => {
+            const idsParam = searchParams.get('ids');
+            if (idsParam) {
+                const us = await login();
+                if (!us){
+                    router.replace("/dashboard");
+                    return;
+                }
+                setUser(us);
 
-                const dummyAllEquipment: Equipment[] = [
-                    { id: 1, name: 'Projector Epson EX3260', room: 201, pathToPhoto: 'https://via.placeholder.com/150/0000FF/FFFFFF?text=Projector', condition: EquipmentCondition.AVAILABLE, type: 'Projector', serialNumber: 'PRJ-EP3260-001', createdAt: '2023-01-15T10:00:00Z', updatedAt: '2024-06-01T14:30:00Z' },
-                    { id: 2, name: 'Laptop Dell XPS 15', room: 105, pathToPhoto: 'https://via.placeholder.com/150/FF0000/FFFFFF?text=Laptop', condition: EquipmentCondition.CHECKED_OUT, type: 'Laptop', serialNumber: 'LAP-DEL-XPS15-005', createdAt: '2022-11-20T08:00:00Z', updatedAt: '2024-07-10T09:15:00Z' },
-                    { id: 3, name: '3D Printer Creality Ender 3', room: 302, pathToPhoto: 'https://via.placeholder.com/150/008000/FFFFFF?text=3D+Printer', condition: EquipmentCondition.UNDER_REPAIR, type: '3D Printer', serialNumber: '3DP-CRE-END3-010', createdAt: '2023-03-01T11:00:00Z', updatedAt: '2024-07-17T16:00:00Z' },
-                    { id: 4, name: 'Server Rack HP ProLiant', room: 400, pathToPhoto: 'https://via.placeholder.com/150/800080/FFFFFF?text=Server', condition: EquipmentCondition.RETIRED, type: 'Server', serialNumber: 'SRV-HP-PROL-001', createdAt: '2021-05-01T09:00:00Z', updatedAt: '2024-02-14T10:00:00Z' },
-                    { id: 5, name: 'Microscope Lab-X 2000', room: 101, pathToPhoto: 'https://via.placeholder.com/150/FFFF00/000000?text=Microscope', condition: EquipmentCondition.AVAILABLE, type: 'Microscope', serialNumber: 'MIC-LBX-2000-003', createdAt: '2023-05-01T09:00:00Z', updatedAt: '2024-01-20T11:00:00Z' },
-                    { id: 6, name: 'Camera Canon EOS R5', room: 205, pathToPhoto: 'https://via.placeholder.com/150/FF8C00/FFFFFF?text=Camera', condition: EquipmentCondition.CHECKED_OUT, type: 'Camera', serialNumber: 'CAM-CAN-R5-002', createdAt: '2022-09-10T14:00:00Z', updatedAt: '2024-07-16T10:00:00Z' },
-                ];
+                try {
+                    const equipmentIds = idsParam.split(',').map(Number);
 
-                const fetchedSelectedEquipment = dummyAllEquipment.filter(eq => equipmentIds.includes(eq.id) && eq.condition === EquipmentCondition.AVAILABLE);
-                setSelectedEquipmentDetails(fetchedSelectedEquipment);
-                setLoading(false);
-            } catch (e) {
-                console.error("Failed to parse equipment IDs from URL:", e);
-                setError("Invalid equipment selection.");
+                    const equipmentDetails: Equipment[] = [];
+                    for (const id of equipmentIds){
+                        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/Equipment/${id}`, {
+                            headers: {
+                                "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+                            }
+                        });
+                        const eq: Equipment = await res.json();
+
+                        if (eq.status != EquipmentStatus.AVAILABLE){
+                            console.log(`Equipment(${JSON.stringify(eq, null, 2)}) is not available`);
+                            continue;
+                        }
+
+                        equipmentDetails.push(eq);
+                    }
+                    
+                    setSelectedEquipmentDetails(equipmentDetails);
+                    setLoading(false);
+                } catch (e) {
+                    console.error("Failed to parse equipment IDs from URL:", e);
+                    setError("Invalid equipment selection.");
+                    setLoading(false);
+                }
+            } else {
+                setError("No equipment selected for request.");
                 setLoading(false);
             }
-        } else {
-            setError("No equipment selected for request.");
-            setLoading(false);
         }
+        fetchEquipmentDetail();
     }, [searchParams]);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -78,7 +87,7 @@ export default function RequestFormPage() {
         const newRequestPayload = {
             message: requestMessage,
             equipmentIds: selectedEquipmentDetails.map(eq => eq.id),
-            userId: dummyCurrentUser.id,
+            userId: user?.id,
         };
 
         console.log("Submitting Request:", newRequestPayload);
@@ -181,13 +190,16 @@ export default function RequestFormPage() {
     }
   }, [searchParams]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
 
-    if (selectedEquipmentDetails.length === 0) {
-      setError("Please select equipment before submitting.");
-      return;
+    if (error) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 p-4">
+                <p className="text-xl font-semibold mb-4">{error}</p>
+                <Link href="/dashboard" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    Go back to Dashboard
+                </Link>
+            </div>
+        );
     }
     if (!startDate || !returnDate) {
       setError("Start and Return dates are required.");

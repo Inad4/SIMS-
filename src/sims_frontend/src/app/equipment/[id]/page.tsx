@@ -3,9 +3,8 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Equipment, EquipmentCondition } from '@/types/equipment';
-import { getConditionColor } from '@/utils/utils';
-import { generateQrCodePdf } from '@/utils/utils';
+import { Equipment, EquipmentStatus, User } from '@/types';
+import { getConditionColor, generateQrCodePdf, login } from '@/utils/utils';
 import Image from 'next/image';
 
 
@@ -20,8 +19,8 @@ export default function EquipmentDetailPage({ params }: PageProps) {
   const router = useRouter();
   
   const { id } = params as unknown as {id: string;};
-  const user = { role: "admin" };
-
+  
+  const [user, setUser] = useState<User>();
   const [equipment, setEquipment] = useState<Equipment | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +38,14 @@ export default function EquipmentDetailPage({ params }: PageProps) {
       const fetchEquipmentDetail = async () => {
         setLoading(true);
         setError(null);
+
+        const us = await login();
+        if (!us){
+            router.replace("/dashboard");
+            return;
+        }
+        setUser(us);
+
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE}/equipment/${id}`, {
                 headers: {
@@ -91,21 +98,30 @@ export default function EquipmentDetailPage({ params }: PageProps) {
           <p className="text-xl text-gray-800 dark:text-gray-200 mb-2">Type: {equipment.type}</p>
           <p className="text-xl text-gray-800 dark:text-gray-200 mb-2">Serial Number: {equipment.serialNumber}</p>
           <p className="text-xl text-gray-800 dark:text-gray-200 mb-2">Room: {equipment.room}</p>
-          <p className="text-xl text-gray-800 dark:text-gray-200 mb-2">Condition: <span className={`px-3 py-1 rounded-full font-semibold ${getConditionColor(equipment.condition)}`}>{equipment.condition.replace(/_/g, ' ')}</span></p>
+          <p className="text-xl text-gray-800 dark:text-gray-200 mb-2">Condition: <span className={`px-3 py-1 rounded-full font-semibold ${getConditionColor(equipment.status)}`}>{equipment.status.replace(/_/g, ' ')}</span></p>
           {equipment.createdAt && <p className="text-sm text-gray-600 dark:text-gray-400 mt-4">Created: {new Date(equipment.createdAt).toLocaleDateString()}</p>}
           {equipment.updatedAt && <p className="text-sm text-gray-600 dark:text-gray-400">Last Updated: {new Date(equipment.updatedAt).toLocaleDateString()}</p>}
         </div>
       </div>
-      {user.role === "admin" && equipment.condition === EquipmentCondition.CHECKED_OUT && 
-      <><button onClick={handleQrCodeGeneration} className="mt-8 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
+      {user?.isAdmin && equipment.status === EquipmentStatus.CHECKED_OUT && 
+      <>
+      <button onClick={() => {router.push(`/admin/returns?equipmentId=${equipment.id}`)}} className="mt-8 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
         Log Return
-      </button><br /></>
+      </button><br />
+      </>
+      }
+      {user?.isAdmin && equipment.status != EquipmentStatus.CHECKED_OUT && 
+      <>
+      <button onClick={() => router.push(`/equipment/${equipment.id}/edit`)} className="mt-8 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
+        Edit
+      </button><br />
+      </>
       }
       <button onClick={handleQrCodeGeneration} className="mt-8 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
         Generate Qr Code
       </button>
       <br />
-      <button onClick={() => router.back()} className="mt-8 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
+      <button onClick={() => router.push("/dashboard")} className="mt-8 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
         Back to Dashboard
       </button>
     </div>
