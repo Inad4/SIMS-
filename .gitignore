@@ -1,5 +1,6 @@
 # Visual Studio specific files
 .vs/
+Cargo.lock
 *.suo
 *.user
 *.userprefs
