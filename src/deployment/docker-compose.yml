@@ -1,0 +1,117 @@
+services:
+  auth-postgres-db:
+    image: postgres:16
+    container_name: auth-postgres-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-root}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-root}
+      POSTGRES_DB: ${POSTGRES_DB:-aibest}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    labels:
+      kompose.init.containers.command: "echo Initializing auth postgres database"
+      kompose.controller.expose.port: true
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  api-gateway-redis:
+    image: redis:7-alpine
+    container_name: api-gateway-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+    volumes:
+      - redis_data:/data
+    labels:
+      kompose.init.containers.command: "echo Initializing api gateway redis cache"
+      kompose.controller.expose.port: true
+    restart: unless-stopped
+
+  auth-service:
+    build:
+      context: ../tip_of_the_spear/src/
+      dockerfile: ./auth_service/Dockerfile
+    ports:
+      - "8010:8010"
+    depends_on:
+      - auth-postgres-db
+    labels:
+      kompose.init.containers.command: "echo Initializing auth service"
+      kompose.controller.expose.port: true
+      kompose.service.healthcheck.readiness.start_period: 30s
+      kompose.service.healthcheck.readiness.test: "CMD curl -f http://localhost:8010/health"
+      kompose.service.readinessProbe.httpGet.port: 8010
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  api-gateway-service:
+    build:
+      context: ../tip_of_the_spear/src/
+      dockerfile: ./api_gateway_service/Dockerfile
+    ports:
+      - "8009:8009"
+    labels:
+      kompose.init.containers.command: "echo Initializing api gateway service"
+      kompose.controller.expose.port: true
+      kompose.service.healthcheck.readiness.start_period: 30s
+      kompose.service.healthcheck.readiness.test: "CMD curl -f http://localhost:8009/health"
+      kompose.service.readinessProbe.httpGet.port: 8009
+    depends_on:
+      - auth-service
+      - api-gateway-redis
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  backend-service:
+    build:
+      context: ../
+      dockerfile: ./SIMS_BACKEND/Dockerfile
+    ports:
+      - "5128:5128"
+      - "8080:8080"
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  telemetry:
+    image: grafana/otel-lgtm
+    container_name: telemetry
+    ports:
+      - "3000:3000" # Grafana Web UI
+      - "4317:4317" # OTLP gRPC receiver
+      - "4318:4318" # OTLP HTTP receiver
+    networks:
+      - app-network
+    labels:
+      kompose.init.containers.command: "echo Initializing LGTM telemetry stack"
+      kompose.controller.expose.port: true
+    environment:
+      - GF_SERVER_ROOT_URL=http://localhost:8009/api/v1/telemetry/
+      # - GF_SERVER_SERVE_FROM_SUB_PATH=true
+    volumes:
+      - lgtm_data:/data
+  #   restart: unless-stopped
+  # cpus: 0.5
+  # mem_limit: 512m
+  # deploy:
+  #   resources:
+  #     limits:
+  #       cpus: "0.5"
+  #       memory: 512M
+  #     reservations:
+  #       cpus: "0.25"
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  lgtm_data:

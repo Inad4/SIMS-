@@ -1,0 +1,10 @@
+target/
+obj/
+node-modules/
+**/bin/
+**/obj/
+**/TestResults/
+.vscode/
+*.user
+*.suo
+*.csproj.user

@@ -1,36 +1,63 @@
-using Microsoft.AspNetCore.Identity;
+
 using Microsoft.EntityFrameworkCore;
+using SIMS_BACKEND;
 using SharedModels;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<SharedDbContext>(options =>
-   options.UseSqlServer(connectionString));
+// Add services to the container
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
+    throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-builder.Services.AddDatabaseDeveloperPageExceptionFilter(); // This line now works due to the added namespace
+// Configure DbContext
+try
+{
+    builder.Services.AddDbContext<SharedDbContext>(options =>
+        options.UseSqlite("Data Source=sims.db", x =>
+            x.MigrationsAssembly("SharedModels")));
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
-   .AddEntityFrameworkStores<SharedDbContext>();
+}
+catch
+{
+    Console.WriteLine("db connection failed");
+}
 
+// Add controllers and Swagger
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Add CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+else
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+    app.UseExceptionHandler("/Error");
+    app.UseHsts();
+}
 
 app.UseHttpsRedirection();
-
-app.UseAuthorization();
+app.UseStaticFiles();
+app.UseRouting();
+app.UseCors("AllowAll");
 
 app.MapControllers();
 

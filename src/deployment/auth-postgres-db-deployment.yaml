@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.controller.expose.port: "true"
+    kompose.init.containers.command: echo Initializing auth postgres database
+    kompose.version: 1.36.0 (HEAD)
+  labels:
+    io.kompose.service: auth-postgres-db
+  name: auth-postgres-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: auth-postgres-db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.controller.expose.port: "true"
+        kompose.init.containers.command: echo Initializing auth postgres database
+        kompose.version: 1.36.0 (HEAD)
+      labels:
+        io.kompose.service: auth-postgres-db
+    spec:
+      containers:
+        - env:
+            - name: POSTGRES_DB
+              value: aibest
+            - name: POSTGRES_PASSWORD
+              value: root
+            - name: POSTGRES_USER
+              value: root
+          image: postgres:16
+          name: auth-postgres-db
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgres-data
+      restartPolicy: Always
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres-data
