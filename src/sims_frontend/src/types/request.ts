@@ -9,18 +9,17 @@ export enum RequestStatus {
     RETURNED = 'RETURNED'
 }
 
-export interface EquipmentRequest {
-    id: number;
-    message: string;
-    status: RequestStatus;
-    startDate: string;
-    returnDate: string;
-    checkoutDate: string | null;
-    returnedAt: string | null;
-    updatedAt: string | null;
-    createdAt: string | null;
 
-    equipment: Equipment[];
-    userId: string;
-    user: User;
+export interface EquipmentRequest {
+  id: number;
+  message: string;
+  status: RequestStatus;
+  returnedAt: string | null;
+  updatedAt: string | null;
+  createdAt: string | null;
+  equipment: Equipment[];
+  userId: string;
+  user: User;
+  rejectedAt: string | null;
+  approvedAt: string | null;
 }

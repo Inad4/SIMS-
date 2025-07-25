@@ -1,15 +1,15 @@
-import { Equipment, EquipmentCondition } from "@/types/equipment";
+import { Equipment, EquipmentStatus } from "@/types/equipment";
 import { RequestStatus } from "@/types/request";
 
-export function getConditionColor(status: EquipmentCondition | RequestStatus): string {
+export function getConditionColor(status: EquipmentStatus | RequestStatus): string {
     switch (status) {
-        case EquipmentCondition.AVAILABLE:
+        case EquipmentStatus.AVAILABLE:
             return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-        case EquipmentCondition.CHECKED_OUT:
+        case EquipmentStatus.CHECKED_OUT:
             return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-        case EquipmentCondition.UNDER_REPAIR:
+        case EquipmentStatus.UNDER_REPAIR:
             return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
-        case EquipmentCondition.RETIRED:
+        case EquipmentStatus.RETIRED:
             return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
         case RequestStatus.PENDING:
             return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
@@ -76,3 +76,39 @@ export async function generateQrCodePdf(link: string, filename: string = 'qrcode
     }
 }
 
+
+
+/**
+ * Finds the ID of the active checkout request for a given equipment.
+ * An active checkout request is defined as a request that has been approved
+ * but has not yet been returned, and the equipment itself is marked as CHECKED_OUT.
+ *
+ * @param equipment The Equipment object to check.
+ * @returns The ID of the active checkout request, or null if not found or equipment is not checked out.
+ */
+export function getCheckoutRequestId(equipment: Equipment): number | null {
+  if (equipment.status !== EquipmentStatus.CHECKED_OUT) {
+    return null;
+  }
+
+  // Filter through the requests associated with this equipment.
+  // We're looking for requests that:
+  // 1. Have an 'approvedAt' timestamp (meaning they were approved).
+  // 2. Do NOT have a 'returnedAt' timestamp (meaning the equipment hasn't been returned yet).
+  const activeCheckoutRequests = equipment.requests.filter(request =>
+    request.approvedAt !== null &&
+    request.returnedAt === null
+  );
+
+  if (activeCheckoutRequests.length > 0) {
+    activeCheckoutRequests.sort((a, b) => {
+      const dateA = a.approvedAt ? new Date(a.approvedAt).getTime() : 0;
+      const dateB = b.approvedAt ? new Date(b.approvedAt).getTime() : 0;
+      return dateB - dateA;
+    });
+
+    return activeCheckoutRequests[0].id;
+  }
+
+  return null;
+}

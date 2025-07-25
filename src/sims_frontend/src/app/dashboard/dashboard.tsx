@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Equipment, EquipmentCondition, User, School } from '@/types';
+import { Equipment, EquipmentStatus, User, School } from '@/types';
 import { getConditionColor } from '@/utils/utils';
 import Image from 'next/image';
 
@@ -17,7 +17,7 @@ export default function DashboardContent({ user }: DashboardContentProps) {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState<string>('');
-    const [filterCondition, setFilterCondition] = useState<EquipmentCondition | ''>('');
+    const [filterCondition, setFilterCondition] = useState<EquipmentStatus | ''>('');
     const [filterType, setFilterType] = useState<string>('');
     const [selectionMode, setSelectionMode] = useState<boolean>(false);
 
@@ -27,7 +27,11 @@ export default function DashboardContent({ user }: DashboardContentProps) {
             setLoading(true);
             setError(null);
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/School/${user.schoolId}`);
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/School/${user.schoolId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem("jwt")}`
+                    }
+                });
                 if (!res.ok){
                     setError("Failed to fetch school data");
                 }
@@ -66,7 +70,7 @@ export default function DashboardContent({ user }: DashboardContentProps) {
         }
 
         if (filterCondition) {
-            currentFilteredList = currentFilteredList?.filter(equipment => equipment.condition === filterCondition);
+            currentFilteredList = currentFilteredList?.filter(equipment => equipment.status === filterCondition);
         }
 
         if (filterType) {
@@ -78,7 +82,7 @@ export default function DashboardContent({ user }: DashboardContentProps) {
 
     // Only available items from the currently filtered list (i.e., not selected yet)
     const availableFilteredEquipment = useMemo(() => {
-        return filteredEquipment?.filter(eq => eq.condition === EquipmentCondition.AVAILABLE);
+        return filteredEquipment?.filter(eq => eq.status === EquipmentStatus.AVAILABLE);
     }, [filteredEquipment]);
 
     const handleCheckboxChange = useCallback((equipment: Equipment, isSelected: boolean) => {
@@ -94,7 +98,7 @@ export default function DashboardContent({ user }: DashboardContentProps) {
     }, []);
 
     const handleConditionFilterChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-        setFilterCondition(e.target.value as EquipmentCondition | '');
+        setFilterCondition(e.target.value as EquipmentStatus | '');
     }, []);
 
     const handleTypeFilterChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -188,8 +192,8 @@ export default function DashboardContent({ user }: DashboardContentProps) {
                                             <td className="px-6 py-4">{equipment.room}</td>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center">
-                                                    <div className={`h-2.5 w-2.5 rounded-full ${getConditionColor(equipment.condition)} me-2`}></div>
-                                                    {equipment.condition.replace(/_/g, ' ')}
+                                                    <div className={`h-2.5 w-2.5 rounded-full ${getConditionColor(equipment.status)} me-2`}></div>
+                                                    {equipment.status.replace(/_/g, ' ')}
                                                 </div>
                                             </td>
                                         </tr>
@@ -255,7 +259,7 @@ export default function DashboardContent({ user }: DashboardContentProps) {
                             onChange={handleConditionFilterChange}
                         >
                             <option value="">All Conditions</option>
-                            {Object.values(EquipmentCondition).map(condition => (
+                            {Object.values(EquipmentStatus).map(condition => (
                                 <option key={condition} value={condition}>{condition.replace(/_/g, ' ')}</option>
                             ))}
                         </select>
@@ -347,7 +351,7 @@ export default function DashboardContent({ user }: DashboardContentProps) {
                                                     className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                                                     checked={selectedEquipmentList.some(eq => eq.id === equipment.id)}
                                                     onChange={(e) => handleCheckboxChange(equipment, e.target.checked)}
-                                                    disabled={equipment.condition !== EquipmentCondition.AVAILABLE}
+                                                    disabled={equipment.status !== EquipmentStatus.AVAILABLE}
                                                 />
                                                 <label htmlFor={`checkbox-table-search-${equipment.id}`} className="sr-only">checkbox</label>
                                             </div>
@@ -370,8 +374,8 @@ export default function DashboardContent({ user }: DashboardContentProps) {
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center">
-                                            <div className={`h-2.5 w-2.5 rounded-full ${getConditionColor(equipment.condition)} me-2`}></div>
-                                            {equipment.condition.replace(/_/g, ' ')}
+                                            <div className={`h-2.5 w-2.5 rounded-full ${getConditionColor(equipment.status)} me-2`}></div>
+                                            {equipment.status.replace(/_/g, ' ')}
                                         </div>
                                     </td>
                                 </tr>

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { EquipmentRequest, RequestStatus, Equipment, EquipmentCondition, User } from '@/types';
+import { EquipmentRequest, RequestStatus, Equipment, EquipmentStatus, User, School } from '@/types';
 
 export default function AdminLogReturnsPage() {
     const [checkedOutRequests, setCheckedOutRequests] = useState<EquipmentRequest[]>([]);
@@ -10,60 +10,36 @@ export default function AdminLogReturnsPage() {
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [selectedRequestId, setSelectedRequestId] = useState<number | null>(null);
-    const [returnCondition, setReturnCondition] = useState<EquipmentCondition | ''>('');
     const [returnNotes, setReturnNotes] = useState<string>('');
-
-    const dummyAllEquipment: Equipment[] = [
-        { id: 1, name: 'Projector Epson EX3260', room: 201, pathToPhoto: 'https://via.placeholder.com/150/0000FF/FFFFFF?text=Projector', condition: EquipmentCondition.CHECKED_OUT, type: 'Projector', serialNumber: 'PRJ-EP3260-001', createdAt: '2023-01-15T10:00:00Z', updatedAt: '2024-07-15T10:00:00Z' },
-        { id: 2, name: 'Laptop Dell XPS 15', room: 105, pathToPhoto: 'https://via.placeholder.com/150/FF0000/FFFFFF?text=Laptop', condition: EquipmentCondition.CHECKED_OUT, type: 'Laptop', serialNumber: 'LAP-DEL-XPS15-005', createdAt: '2022-11-20T08:00:00Z', updatedAt: '2024-07-10T09:15:00Z' },
-        { id: 3, name: '3D Printer Creality Ender 3', room: 302, pathToPhoto: 'https://via.placeholder.com/150/008000/FFFFFF?text=3D+Printer', condition: EquipmentCondition.UNDER_REPAIR, type: '3D Printer', serialNumber: '3DP-CRE-END3-010', createdAt: '2023-03-01T11:00:00Z', updatedAt: '2024-07-17T16:00:00Z' },
-    ];
-
-    const dummyUsers: User[] = [
-        { id: "user_1", email: "john.doe@example.com", firstName: "John", lastName: "Doe", schoolId: 1, createdAt: null, updatedAt: null, isAdmin: false },
-        { id: "user_2", email: "jane.smith@example.com", firstName: "Jane", lastName: "Smith", schoolId: 1, createdAt: null, updatedAt: null, isAdmin: false },
-    ];
 
     useEffect(() => {
         const fetchCheckedOutRequests = async () => {
             setLoading(true);
             setError(null);
             try {
-                const dummyData: EquipmentRequest[] = await new Promise((resolve) =>
-                    setTimeout(() => {
-                        resolve([
-                            {
-                                id: 101,
-                                equipment: [dummyAllEquipment[0]],
-                                userId: dummyUsers[0].id,
-                                user: dummyUsers[0],
-                                message: 'Projector for presentation.',
-                                status: RequestStatus.APPROVED,
-                                startDate: '2025-07-20',
-                                returnDate: '2025-07-22',
-                                checkoutDate: '2025-07-20T09:00:00Z',
-                                returnedAt: null,
-                                createdAt: '2025-07-18T10:00:00Z',
-                                updatedAt: '2025-07-20T09:00:00Z',
-                            },
-                            {
-                                id: 102,
-                                equipment: [dummyAllEquipment[1]],
-                                userId: dummyUsers[1].id,
-                                user: dummyUsers[1],
-                                message: 'Laptop for urgent work.',
-                                status: RequestStatus.APPROVED,
-                                startDate: '2025-07-15',
-                                returnDate: '2025-07-25',
-                                checkoutDate: '2025-07-15T11:00:00Z',
-                                returnedAt: null,
-                                createdAt: '2025-07-14T14:00:00Z',
-                                updatedAt: '2025-07-15T11:00:00Z',
-                            },
-                        ]);
-                    }, 500)
-                );
-                setCheckedOutRequests(dummyData);
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/School/${user.schoolId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem("jwt")}`
+                    }
+                });
+                if (!res.ok){
+                    setError("Failed to fetch school data");
+                }
+                const school: School = await res.json();
+                if (!school.equipment){
+                    setError("Currently your school doesn't have any equipment");
+                    return;
+                }
+                
+                let checkedOutRequestsFetched: EquipmentRequest[] = [];
+                for (const equipment of school.equipment){
+                    if (equipment.status != EquipmentStatus.CHECKED_OUT) continue;
+                    for(const request of equipment.requests){
+                        if (request.approvedAt !== null && request.returnedAt === null) checkedOutRequestsFetched.push(request);
+                    }
+                }
+            
+                setCheckedOutRequests(checkedOutRequestsFetched);
             } catch (err) {
                 console.error("Failed to fetch checked out requests:", err);
                 setError("Failed to load requests. Please try again.");
@@ -97,10 +73,6 @@ export default function AdminLogReturnsPage() {
             setError("Please select a request to log its return.");
             return;
         }
-        if (!returnCondition) {
-            setError("Please select the return condition of the equipment.");
-            return;
-        }
 
         const requestToUpdate = checkedOutRequests.find(req => req.id === selectedRequestId);
         if (!requestToUpdate) {
@@ -109,43 +81,30 @@ export default function AdminLogReturnsPage() {
         }
 
         console.log(`Logging return for request ID: ${selectedRequestId}`);
-        console.log(`Condition: ${returnCondition}, Notes: ${returnNotes}`);
+        console.log(`Notes: ${returnNotes}`);
 
-        alert(`Return for request ${selectedRequestId} logged! (Simulated)`);
-
-        setCheckedOutRequests(prevRequests =>
-            prevRequests.filter(req => req.id !== selectedRequestId)
-        );
-
-        setSelectedRequestId(null);
-        setReturnCondition('');
-        setReturnNotes('');
-
-        // In a real application, you would make an API call here:
-        // try {
-        //     const response = await fetch(`/api/equipment-requests/${selectedRequestId}/return`, {
-        //         method: 'PUT',
-        //         headers: { 'Content-Type': 'application/json' },
-        //         body: JSON.stringify({
-        //             condition: returnCondition,
-        //             notes: returnNotes,
-        //             returnedAt: new Date().toISOString()
-        //         })
-        //     });
-        //     if (!response.ok) {
-        //         throw new Error('Failed to log return');
-        //     }
-        //     setCheckedOutRequests(prevRequests =>
-        //         prevRequests.filter(req => req.id !== selectedRequestId)
-        //     );
-        //     setSelectedRequestId(null);
-        //     setReturnCondition('');
-        //     setReturnNotes('');
-        // } catch (err) {
-        //     console.error("Error logging return:", err);
-        //     setError("Failed to log return. Please try again.");
-        // }
-    }, [selectedRequestId, returnCondition, returnNotes, checkedOutRequests]);
+        try {
+            const response = await fetch(`/api/Equipment/${selectedRequestId}/return`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem("jwt")}` },
+                body: JSON.stringify({
+                    notes: returnNotes,
+                    returnedAt: new Date().toISOString()
+                })
+            });
+            if (!response.ok) {
+                throw new Error('Failed to log return');
+            }
+            setCheckedOutRequests(prevRequests =>
+                prevRequests.filter(req => req.id !== selectedRequestId)
+            );
+            setSelectedRequestId(null);
+            setReturnNotes('');
+        } catch (err) {
+            console.error("Error logging return:", err);
+            setError("Failed to log return. Please try again.");
+        }
+    }, [selectedRequestId, returnNotes, checkedOutRequests]);
 
     const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value);
@@ -230,10 +189,10 @@ export default function AdminLogReturnsPage() {
                                                 {request.equipment.map(eq => eq.name).join(', ')}
                                             </td>
                                             <td className="px-6 py-4">
-                                                {request.checkoutDate ? new Date(request.checkoutDate).toLocaleDateString() : 'N/A'}
+                                                {request.approvedAt ? new Date(request.approvedAt).toLocaleDateString() : 'N/A'}
                                             </td>
                                             <td className="px-6 py-4">
-                                                {new Date(request.returnDate).toLocaleDateString()}
+                                                {request.returnedAt ? new Date(request.returnedAt).toLocaleDateString() : "N/A"}
                                             </td>
                                         </tr>
                                     ))}
@@ -247,21 +206,6 @@ export default function AdminLogReturnsPage() {
                     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
                         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Log Return Details for Request ID: {selectedRequestId}</h2>
                         <form onSubmit={handleLogReturn} className="space-y-4">
-                            <div>
-                                <label htmlFor="returnCondition" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Return Condition</label>
-                                <select
-                                    id="returnCondition"
-                                    className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                    value={returnCondition}
-                                    onChange={(e) => setReturnCondition(e.target.value as EquipmentCondition)}
-                                    required
-                                >
-                                    <option value="">Select condition</option>
-                                    <option value={EquipmentCondition.AVAILABLE}>Good (Available)</option>
-                                    <option value={EquipmentCondition.UNDER_REPAIR}>Damaged (Under Repair)</option>
-                                    <option value={EquipmentCondition.RETIRED}>Retired (Beyond Repair)</option>
-                                </select>
-                            </div>
                             <div>
                                 <label htmlFor="returnNotes" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Notes (Optional)</label>
                                 <textarea

@@ -2,8 +2,8 @@
 
 import React from 'react';
 import DashboardContent from './dashboard';
-import LandingPage from './landlngPage';
-import { User } from '@/types'; // Updated import
+import LandingPage from './landingPage';
+import { User } from '@/types';
 /*
 const dummyAdminUser: User = {
     id: "admin_1",

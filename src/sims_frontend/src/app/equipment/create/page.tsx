@@ -2,13 +2,13 @@
 
 import React, { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Equipment, EquipmentCondition } from '@/types';
+import { Equipment, EquipmentStatus } from '@/types';
 
 interface NewEquipmentPayload {
     name: string;
     room: number;
     pathToPhoto: string;
-    condition: EquipmentCondition;
+    condition: EquipmentStatus;
     type: string;
     serialNumber: string;
 }
@@ -20,7 +20,7 @@ export default function CreateEquipmentPage() {
     const [name, setName] = useState<string>('');
     const [room, setRoom] = useState<string>('');
     const [pathToPhoto, setPathToPhoto] = useState<string>('');
-    const [condition, setCondition] = useState<EquipmentCondition>(EquipmentCondition.AVAILABLE);
+    const [condition, setCondition] = useState<EquipmentStatus>(EquipmentStatus.AVAILABLE);
     const [type, setType] = useState<string>('');
     const [serialNumber, setSerialNumber] = useState<string>('');
 
@@ -85,7 +85,7 @@ export default function CreateEquipmentPage() {
                 setName('');
                 setRoom('');
                 setPathToPhoto('');
-                setCondition(EquipmentCondition.AVAILABLE); // Reset to default condition
+                setCondition(EquipmentStatus.AVAILABLE); // Reset to default condition
                 setType('');
                 setSerialNumber('');
                 // Keep success message visible for a short period
@@ -209,10 +209,10 @@ export default function CreateEquipmentPage() {
                         <select
                             id="condition"
                             value={condition}
-                            onChange={(e) => setCondition(e.target.value as EquipmentCondition)}
+                            onChange={(e) => setCondition(e.target.value as EquipmentStatus)}
                             className="w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                         >
-                            {Object.values(EquipmentCondition).map((cond) => (
+                            {Object.values(EquipmentStatus).map((cond) => (
                                 <option key={cond} value={cond}>
                                     {cond.replace(/_/g, ' ')}
                                 </option>

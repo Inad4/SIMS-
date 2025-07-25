@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { EquipmentRequest, RequestStatus, Equipment, User, EquipmentCondition } from '@/types';
+import { EquipmentRequest, RequestStatus, Equipment, User, EquipmentStatus, School } from '@/types';
 import { getConditionColor } from '@/utils/utils';
 import Image from 'next/image';
 
@@ -11,87 +11,35 @@ export default function PersonalBorrowingHistoryPage() {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    const dummyCurrentUser: User = {
-        id: "user_abc_1",
-        email: "user1@example.com",
-        firstName: "Alice",
-        lastName: "Smith",
-        schoolId: 1,
-        createdAt: null,
-        updatedAt: null,
-        isAdmin: false
-    };
 
-    const dummyAllEquipment: Equipment[] = [
-        { id: 1, name: 'Projector Epson EX3260', room: 201, pathToPhoto: 'https://via.placeholder.com/150/0000FF/FFFFFF?text=Projector', condition: EquipmentCondition.AVAILABLE, type: 'Projector', serialNumber: 'PRJ-EP3260-001', createdAt: '2023-01-15T10:00:00Z', updatedAt: '2024-06-01T14:30:00Z' },
-        { id: 2, name: 'Laptop Dell XPS 15', room: 105, pathToPhoto: 'https://via.placeholder.com/150/FF0000/FFFFFF?text=Laptop', condition: EquipmentCondition.CHECKED_OUT, type: 'Laptop', serialNumber: 'LAP-DEL-XPS15-005', createdAt: '2022-11-20T08:00:00Z', updatedAt: '2024-07-10T09:15:00Z' },
-        { id: 3, name: '3D Printer Creality Ender 3', room: 302, pathToPhoto: 'https://via.placeholder.com/150/008000/FFFFFF?text=3D+Printer', condition: EquipmentCondition.UNDER_REPAIR, type: '3D Printer', serialNumber: '3DP-CRE-END3-010', createdAt: '2023-03-01T11:00:00Z', updatedAt: '2024-07-17T16:00:00Z' },
-        { id: 5, name: 'Microscope Lab-X 2000', room: 101, pathToPhoto: 'https://via.placeholder.com/150/FFFF00/000000?text=Microscope', condition: EquipmentCondition.AVAILABLE, type: 'Microscope', serialNumber: 'MIC-LBX-2000-003', createdAt: '2023-05-01T09:00:00Z', updatedAt: '2024-01-20T11:00:00Z' },
-        { id: 6, name: 'Camera Canon EOS R5', room: 205, pathToPhoto: 'https://via.placeholder.com/150/FF8C00/FFFFFF?text=Camera', condition: EquipmentCondition.CHECKED_OUT, type: 'Camera', serialNumber: 'CAM-CAN-R5-002', createdAt: '2022-09-10T14:00:00Z', updatedAt: '2024-07-16T10:00:00Z' },
-    ];
 
     useEffect(() => {
         const fetchBorrowingHistory = async () => {
             setLoading(true);
             setError(null);
             try {
-                const dummyRequests: EquipmentRequest[] = await new Promise((resolve) =>
-                    setTimeout(() => {
-                        resolve([
-                            {
-                                id: 101,
-                                equipment: [
-                                    dummyAllEquipment.find(e => e.id === 1)!,
-                                    dummyAllEquipment.find(e => e.id === 5)!
-                                ],
-                                userId: dummyCurrentUser.id,
-                                user: dummyCurrentUser,
-                                message: 'Request for: Projector Epson EX3260 (SN: PRJ-EP3260-001), Microscope Lab-X 2000 (SN: MIC-LBX-2000-003). From: 2025-08-01 To: 2025-08-05. Notes: Need for presentation in Room 201.',
-                                status: RequestStatus.APPROVED,
-                                startDate: '2025-08-01',
-                                returnDate: '2025-08-05',
-                                checkoutDate: '2025-07-31T14:00:00Z',
-                                returnedAt: null,
-                                createdAt: '2025-07-18T10:00:00Z',
-                                updatedAt: '2025-07-18T10:00:00Z',
-                            },
-                            {
-                                id: 102,
-                                equipment: [
-                                    dummyAllEquipment.find(e => e.id === 6)!
-                                ],
-                                userId: dummyCurrentUser.id,
-                                user: dummyCurrentUser,
-                                message: 'Request for: Camera Canon EOS R5 (SN: CAM-CAN-R5-002). From: 2025-07-25 To: 2025-07-28. Notes: For a photography project.',
-                                status: RequestStatus.RETURNED,
-                                startDate: '2025-07-25',
-                                returnDate: '2025-07-28',
-                                checkoutDate: '2025-07-24T09:00:00Z',
-                                returnedAt: '2025-07-27T16:00:00Z',
-                                createdAt: '2025-07-19T11:30:00Z',
-                                updatedAt: '2025-07-27T16:00:00Z',
-                            },
-                            {
-                                id: 103,
-                                equipment: [
-                                    dummyAllEquipment.find(e => e.id === 2)!
-                                ],
-                                userId: dummyCurrentUser.id,
-                                user: dummyCurrentUser,
-                                message: 'Request for: Laptop Dell XPS 15 (SN: LAP-DEL-XPS15-005). From: 2025-08-10 To: 2025-08-15. Notes: Urgent laptop need.',
-                                status: RequestStatus.PENDING,
-                                startDate: '2025-08-10',
-                                returnDate: '2025-08-15',
-                                checkoutDate: null,
-                                returnedAt: null,
-                                createdAt: '2025-07-19T15:00:00Z',
-                                updatedAt: '2025-07-19T15:00:00Z',
-                            }
-                        ]);
-                    }, 800)
-                );
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/School/${user.schoolId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem("jwt")}`
+                    }
+                });
+                if (!res.ok){
+                    setError("Failed to fetch school data");
+                }
+                const school: School= await res.json();
 
-                const userRequests = dummyRequests.filter(req => req.userId === dummyCurrentUser.id);
+                if (!school.equipment){
+                    setError("Currently your school doesn't have any requests");
+                    return;
+                }
+                
+                let userRequests: EquipmentRequest[] = [];
+                for (const equipment of school.equipment){
+                    for(const request of equipment.requests){
+                        if (request.userId != user.id) continue;
+                        userRequests.push(request);
+                    }
+                }
                 setBorrowingHistory(userRequests);
 
             } catch (err) {
@@ -160,9 +108,9 @@ export default function PersonalBorrowingHistoryPage() {
                                     <p className="text-gray-700 dark:text-gray-300 mb-2">
                                         <span className="font-semibold">Requested Period:</span> {new Date(request.startDate).toLocaleDateString()} - {new Date(request.returnDate).toLocaleDateString()}
                                     </p>
-                                    {request.checkoutDate && (
+                                    {request.approvedAt && (
                                         <p className="text-gray-700 dark:text-gray-300 mb-2">
-                                            <span className="font-semibold">Checked Out On:</span> {new Date(request.checkoutDate).toLocaleDateString()}
+                                            <span className="font-semibold">Checked Out On:</span> {new Date(request.approvedAt).toLocaleDateString()}
                                         </p>
                                     )}
                                     {request.returnedAt && (

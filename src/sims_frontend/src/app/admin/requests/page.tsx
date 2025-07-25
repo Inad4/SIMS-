@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { EquipmentRequest, RequestStatus, Equipment, User, EquipmentCondition } from '@/types';
+import { EquipmentRequest, RequestStatus, Equipment, User, EquipmentStatus, School } from '@/types';
 import { getConditionColor } from '@/utils/utils';
 import Image from 'next/image';
 
@@ -12,74 +12,35 @@ export default function AdminManageRequestsPage() {
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState<string>('');
 
-    const dummyAllEquipment: Equipment[] = [
-        { id: 1, name: 'Projector Epson EX3260', room: 201, pathToPhoto: 'https://via.placeholder.com/150/0000FF/FFFFFF?text=Projector', condition: EquipmentCondition.AVAILABLE, type: 'Projector', serialNumber: 'PRJ-EP3260-001', createdAt: '2023-01-15T10:00:00Z', updatedAt: '2024-06-01T14:30:00Z' },
-        { id: 2, name: 'Laptop Dell XPS 15', room: 105, pathToPhoto: 'https://via.placeholder.com/150/FF0000/FFFFFF?text=Laptop', condition: EquipmentCondition.AVAILABLE, type: 'Laptop', serialNumber: 'LAP-DEL-XPS15-005', createdAt: '2022-11-20T08:00:00Z', updatedAt: '2024-07-10T09:15:00Z' },
-        { id: 3, name: '3D Printer Creality Ender 3', room: 302, pathToPhoto: 'https://via.placeholder.com/150/008000/FFFFFF?text=3D+Printer', condition: EquipmentCondition.UNDER_REPAIR, type: '3D Printer', serialNumber: '3DP-CRE-END3-010', createdAt: '2023-03-01T11:00:00Z', updatedAt: '2024-07-17T16:00:00Z' },
-        { id: 4, name: 'Server Rack HP ProLiant', room: 400, pathToPhoto: 'https://via.placeholder.com/150/800080/FFFFFF?text=Server', condition: EquipmentCondition.AVAILABLE, type: 'Server', serialNumber: 'SRV-HP-PROL-001', createdAt: '2021-05-01T09:00:00Z', updatedAt: '2024-02-14T10:00:00Z' },
-    ];
-
-    const dummyUsers: User[] = [
-        { id: "user_1", email: "john.doe@example.com", firstName: "John", lastName: "Doe", schoolId: 1, createdAt: null, updatedAt: null, isAdmin: false },
-        { id: "user_2", email: "jane.smith@example.com", firstName: "Jane", lastName: "Smith", schoolId: 1, createdAt: null, updatedAt: null, isAdmin: false },
-        { id: "user_3", email: "peter.jones@example.com", firstName: "Peter", lastName: "Jones", schoolId: 2, createdAt: null, updatedAt: null, isAdmin: false },
-    ];
-
 
     useEffect(() => {
         const fetchPendingRequests = async () => {
             setLoading(true);
             setError(null);
             try {
-                const dummyData: EquipmentRequest[] = await new Promise((resolve) =>
-                    setTimeout(() => {
-                        resolve([
-                            {
-                                id: 1,
-                                equipment: [dummyAllEquipment[0]],
-                                userId: dummyUsers[0].id,
-                                user: dummyUsers[0],
-                                message: 'Request for Projector for presentation in room 201 on Aug 5th.',
-                                status: RequestStatus.PENDING,
-                                startDate: '2025-08-05',
-                                returnDate: '2025-08-05',
-                                checkoutDate: null,
-                                returnedAt: null,
-                                createdAt: '2025-07-15T10:00:00Z',
-                                updatedAt: '2025-07-15T10:00:00Z',
-                            },
-                            {
-                                id: 2,
-                                equipment: [dummyAllEquipment[1]],
-                                userId: dummyUsers[1].id,
-                                user: dummyUsers[1],
-                                message: 'Laptop needed for off-site training from Sep 1 to Sep 3.',
-                                status: RequestStatus.PENDING,
-                                startDate: '2025-09-01',
-                                returnDate: '2025-09-03',
-                                checkoutDate: null,
-                                returnedAt: null,
-                                createdAt: '2025-07-14T14:30:00Z',
-                                updatedAt: '2025-07-14T14:30:00Z',
-                            },
-                            {
-                                id: 3,
-                                equipment: [dummyAllEquipment[3]],
-                                userId: dummyUsers[2].id,
-                                user: dummyUsers[2],
-                                message: 'Server rack for temporary lab setup next week.',
-                                status: RequestStatus.PENDING,
-                                startDate: '2025-07-28',
-                                returnDate: '2025-08-01',
-                                checkoutDate: null,
-                                returnedAt: null,
-                                createdAt: '2025-07-16T09:00:00Z',
-                                updatedAt: '2025-07-16T09:00:00Z',
-                            },
-                        ]);
-                    }, 500)
-                );
-                setPendingRequests(dummyData);
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/School/${user.schoolId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem("jwt")}`
+                    }
+                });
+                if (!res.ok){
+                    setError("Failed to fetch school data");
+                }
+                const school: School = await res.json();
+                if (!school.equipment){
+                    setError("Currently your school doesn't have any requests");
+                    return;
+                }
+                
+                let pendingRequestsFetched: EquipmentRequest[] = [];
+                for (const equipment of school.equipment){
+                    if (equipment.status != EquipmentStatus.AVAILABLE) continue;
+                    for(const request of equipment.requests){
+                        if (request.status == RequestStatus.PENDING) pendingRequestsFetched.push(request);
+                    }
+                }
+                
+                setPendingRequests(pendingRequestsFetched);
             } catch (err) {
                 console.error("Failed to fetch pending requests:", err);
                 setError("Failed to load requests. Please try again.");
@@ -110,34 +71,24 @@ export default function AdminManageRequestsPage() {
         if (!requestToUpdate) return;
 
         console.log(`Attempting to ${action} request ${requestId}`);
-        alert(`Request ${requestId} ${action}d! (Simulated)`);
 
-        setPendingRequests(prevRequests =>
-            prevRequests.filter(req => req.id !== requestId)
-        );
-
-        // In a real application, you would make an API call here:
-        // try {
-        //     const response = await fetch(`/api/equipment-requests/${requestId}/${action}`, {
-        //         method: 'PUT',
-        //         headers: { 'Content-Type': 'application/json' },
-        //         body: JSON.stringify({
-        //             // potentially send status and checkout date for approve
-        //             // or rejection reason for reject
-        //         })
-        //     });
-        //     if (!response.ok) {
-        //         throw new Error('Failed to update request status');
-        //     }
-        //     // After successful API call, remove from pending list
-        //     setPendingRequests(prevRequests =>
-        //         prevRequests.filter(req => req.id !== requestId)
-        //     );
-        // } catch (err) {
-        //     console.error(`Error ${action}ing request:`, err);
-        //     setError(`Failed to ${action} request ${requestId}. Please try again.`);
-        //     // Optionally, revert the UI change if API fails
-        // }
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/Equipment/${requestId}/${action}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem("jwt")}` },
+            });
+            if (!response.ok) {
+                throw new Error('Failed to update request status');
+            }
+            // After successful API call, remove from pending list
+            setPendingRequests(prevRequests =>
+                prevRequests.filter(req => req.id !== requestId)
+            );
+        } catch (err) {
+            console.error(`Error ${action}ing request:`, err);
+            setError(`Failed to ${action} request ${requestId}. Please try again.`);
+            // Optionally, revert the UI change if API fails
+        }
     }, [pendingRequests]);
 
     const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

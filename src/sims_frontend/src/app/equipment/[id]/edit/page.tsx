@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Equipment, EquipmentCondition } from '@/types';
+import { Equipment, EquipmentStatus } from '@/types';
 
 interface PageProps {
   params: Promise<{
@@ -17,7 +17,7 @@ export default function EditEquipmentPage({ params }: PageProps) {
   const [name, setName] = useState<string>('');
   const [room, setRoom] = useState<string>('');
   const [pathToPhoto, setPathToPhoto] = useState<string>('');
-  const [condition, setCondition] = useState<EquipmentCondition>(EquipmentCondition.AVAILABLE);
+  const [status, setStatus] = useState<EquipmentStatus>(EquipmentStatus.AVAILABLE);
   const [type, setType] = useState<string>('');
   const [serialNumber, setSerialNumber] = useState<string>('');
 
@@ -57,7 +57,7 @@ export default function EditEquipmentPage({ params }: PageProps) {
         setName(eq.name);
         setRoom(eq.room.toString());
         setPathToPhoto(eq.pathToPhoto);
-        setCondition(eq.condition);
+        setStatus(eq.status);
         setType(eq.type);
         setSerialNumber(eq.serialNumber);
 
@@ -97,7 +97,7 @@ export default function EditEquipmentPage({ params }: PageProps) {
       name,
       room: roomNumber,
       pathToPhoto,
-      condition: condition,
+      status: status,
       type,
       serialNumber,
     };
@@ -137,7 +137,7 @@ export default function EditEquipmentPage({ params }: PageProps) {
     } finally {
       setLoading(false);
     }
-  }, [name, room, pathToPhoto, condition, type, serialNumber, equipmentId, originalEquipment, router]);
+  }, [name, room, pathToPhoto, status, type, serialNumber, equipmentId, originalEquipment, router]);
 
   if (loading && !originalEquipment) {
     return (
@@ -253,11 +253,11 @@ export default function EditEquipmentPage({ params }: PageProps) {
             <label htmlFor="condition" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Condition</label>
             <select
               id="condition"
-              value={condition}
-              onChange={(e) => setCondition(e.target.value as EquipmentCondition)}
+              value={status}
+              onChange={(e) => setStatus(e.target.value as EquipmentStatus)}
               className="w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             >
-              {Object.values(EquipmentCondition).map((cond) => (
+              {Object.values(EquipmentStatus).map((cond) => (
                 <option key={cond} value={cond}>
                   {cond.replace(/_/g, ' ')}
                 </option>

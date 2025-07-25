@@ -1,4 +1,6 @@
-export enum EquipmentCondition {
+import { EquipmentRequest } from "./request";
+
+export enum EquipmentStatus {
     AVAILABLE = "AVAILABLE",
     UNDER_REPAIR = "UNDER_REPAIR",
     CHECKED_OUT = "CHECKED_OUT",
@@ -10,9 +12,10 @@ export interface Equipment {
     name: string;
     room: number;
     pathToPhoto: string;
-    condition: EquipmentCondition;
+    status: EquipmentStatus;
     type: string;
     serialNumber: string;
     updatedAt?: string; // Using string for Date objects from JSON
     createdAt?: string; // Using string for Date objects from JSON
+    requests: EquipmentRequest[]
 }
