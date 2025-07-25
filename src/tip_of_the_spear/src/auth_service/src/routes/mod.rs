@@ -3,6 +3,7 @@ use auth::microservice_auth_middleware::MicroserviceAuthMiddleware;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
+pub mod get_account_me;
 pub mod get_logout;
 pub mod get_public_pem;
 pub mod post_login;
@@ -24,5 +25,10 @@ pub fn routes() -> Scope {
             web::resource("/logout")
                 .wrap(MicroserviceAuthMiddleware)
                 .route(web::get().to(get_logout::get_logout)),
+        )
+        .service(
+            web::resource("/account/me")
+                .wrap(MicroserviceAuthMiddleware)
+                .route(web::get().to(get_account_me::get_account_me)),
         )
 }
