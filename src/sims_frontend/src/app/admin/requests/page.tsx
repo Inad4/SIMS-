@@ -1,82 +1,88 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { Equipment, EquipmentCondition } from '@/types/equipment';
-import { User } from '@/types/user';
-import { EquipmentRequest, RequestStatus } from '@/types/request';
+import { EquipmentRequest, RequestStatus, Equipment, User, EquipmentCondition } from '@/types';
 import { getConditionColor } from '@/utils/utils';
+import Image from 'next/image';
 
-export default function ManageRequestsPage() {
+export default function AdminManageRequestsPage() {
     const [pendingRequests, setPendingRequests] = useState<EquipmentRequest[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState<string>('');
 
     const dummyAllEquipment: Equipment[] = [
         { id: 1, name: 'Projector Epson EX3260', room: 201, pathToPhoto: 'https://via.placeholder.com/150/0000FF/FFFFFF?text=Projector', condition: EquipmentCondition.AVAILABLE, type: 'Projector', serialNumber: 'PRJ-EP3260-001', createdAt: '2023-01-15T10:00:00Z', updatedAt: '2024-06-01T14:30:00Z' },
-        { id: 2, name: 'Laptop Dell XPS 15', room: 105, pathToPhoto: 'https://via.placeholder.com/150/FF0000/FFFFFF?text=Laptop', condition: EquipmentCondition.CHECKED_OUT, type: 'Laptop', serialNumber: 'LAP-DEL-XPS15-005', createdAt: '2022-11-20T08:00:00Z', updatedAt: '2024-07-10T09:15:00Z' },
+        { id: 2, name: 'Laptop Dell XPS 15', room: 105, pathToPhoto: 'https://via.placeholder.com/150/FF0000/FFFFFF?text=Laptop', condition: EquipmentCondition.AVAILABLE, type: 'Laptop', serialNumber: 'LAP-DEL-XPS15-005', createdAt: '2022-11-20T08:00:00Z', updatedAt: '2024-07-10T09:15:00Z' },
         { id: 3, name: '3D Printer Creality Ender 3', room: 302, pathToPhoto: 'https://via.placeholder.com/150/008000/FFFFFF?text=3D+Printer', condition: EquipmentCondition.UNDER_REPAIR, type: '3D Printer', serialNumber: '3DP-CRE-END3-010', createdAt: '2023-03-01T11:00:00Z', updatedAt: '2024-07-17T16:00:00Z' },
-        { id: 4, name: 'Server Rack HP ProLiant', room: 400, pathToPhoto: 'https://via.placeholder.com/150/800080/FFFFFF?text=Server', condition: EquipmentCondition.RETIRED, type: 'Server', serialNumber: 'SRV-HP-PROL-001', createdAt: '2021-05-01T09:00:00Z', updatedAt: '2024-02-14T10:00:00Z' },
-        { id: 5, name: 'Microscope Lab-X 2000', room: 101, pathToPhoto: 'https://via.placeholder.com/150/FFFF00/000000?text=Microscope', condition: EquipmentCondition.AVAILABLE, type: 'Microscope', serialNumber: 'MIC-LBX-2000-003', createdAt: '2023-05-01T09:00:00Z', updatedAt: '2024-01-20T11:00:00Z' },
-        { id: 6, name: 'Camera Canon EOS R5', room: 205, pathToPhoto: 'https://via.placeholder.com/150/FF8C00/FFFFFF?text=Camera', condition: EquipmentCondition.CHECKED_OUT, type: 'Camera', serialNumber: 'CAM-CAN-R5-002', createdAt: '2022-09-10T14:00:00Z', updatedAt: '2024-07-16T10:00:00Z' },
+        { id: 4, name: 'Server Rack HP ProLiant', room: 400, pathToPhoto: 'https://via.placeholder.com/150/800080/FFFFFF?text=Server', condition: EquipmentCondition.AVAILABLE, type: 'Server', serialNumber: 'SRV-HP-PROL-001', createdAt: '2021-05-01T09:00:00Z', updatedAt: '2024-02-14T10:00:00Z' },
     ];
+
+    const dummyUsers: User[] = [
+        { id: "user_1", email: "john.doe@example.com", firstName: "John", lastName: "Doe", schoolId: 1, createdAt: null, updatedAt: null, isAdmin: false },
+        { id: "user_2", email: "jane.smith@example.com", firstName: "Jane", lastName: "Smith", schoolId: 1, createdAt: null, updatedAt: null, isAdmin: false },
+        { id: "user_3", email: "peter.jones@example.com", firstName: "Peter", lastName: "Jones", schoolId: 2, createdAt: null, updatedAt: null, isAdmin: false },
+    ];
+
 
     useEffect(() => {
         const fetchPendingRequests = async () => {
             setLoading(true);
             setError(null);
             try {
-                const dummyRequests: EquipmentRequest[] = await new Promise((resolve) =>
+                const dummyData: EquipmentRequest[] = await new Promise((resolve) =>
                     setTimeout(() => {
                         resolve([
                             {
-                                id: 101,
-                                equipment: [
-                                    dummyAllEquipment.find(e => e.id === 1)!,
-                                    dummyAllEquipment.find(e => e.id === 5)!
-                                ],
-                                userId: "user_abc_1",
-                                user: { id: "user_abc_1", email: "user1@example.com", firstName: "Alice", lastName: "Smith", schoolId: 1, createdAt: null, updatedAt: null },
-                                message: 'Request for: Projector Epson EX3260 (SN: PRJ-EP3260-001), Microscope Lab-X 2000 (SN: MIC-LBX-2000-003). From: 2025-08-01 To: 2025-08-05. Notes: Need for presentation in Room 201.',
+                                id: 1,
+                                equipment: [dummyAllEquipment[0]],
+                                userId: dummyUsers[0].id,
+                                user: dummyUsers[0],
+                                message: 'Request for Projector for presentation in room 201 on Aug 5th.',
                                 status: RequestStatus.PENDING,
+                                startDate: '2025-08-05',
+                                returnDate: '2025-08-05',
+                                checkoutDate: null,
                                 returnedAt: null,
-                                createdAt: '2025-07-18T10:00:00Z',
-                                updatedAt: '2025-07-18T10:00:00Z',
+                                createdAt: '2025-07-15T10:00:00Z',
+                                updatedAt: '2025-07-15T10:00:00Z',
                             },
                             {
-                                id: 102,
-                                equipment: [
-                                    dummyAllEquipment.find(e => e.id === 6)!
-                                ],
-                                userId: "user_def_2",
-                                user: { id: "user_def_2", email: "user2@example.com", firstName: "Bob", lastName: "Johnson", schoolId: 1, createdAt: null, updatedAt: null },
-                                message: 'Request for: Camera Canon EOS R5 (SN: CAM-CAN-R5-002). From: 2025-07-25 To: 2025-07-28. Notes: For a photography project.',
+                                id: 2,
+                                equipment: [dummyAllEquipment[1]],
+                                userId: dummyUsers[1].id,
+                                user: dummyUsers[1],
+                                message: 'Laptop needed for off-site training from Sep 1 to Sep 3.',
                                 status: RequestStatus.PENDING,
+                                startDate: '2025-09-01',
+                                returnDate: '2025-09-03',
+                                checkoutDate: null,
                                 returnedAt: null,
-                                createdAt: '2025-07-19T11:30:00Z',
-                                updatedAt: '2025-07-19T11:30:00Z',
+                                createdAt: '2025-07-14T14:30:00Z',
+                                updatedAt: '2025-07-14T14:30:00Z',
                             },
                             {
-                                id: 103,
-                                equipment: [
-                                    dummyAllEquipment.find(e => e.id === 2)!
-                                ],
-                                userId: "user_ghi_3",
-                                user: { id: "user_ghi_3", email: "user3@example.com", firstName: "Charlie", lastName: "Brown", schoolId: 2, createdAt: null, updatedAt: null },
-                                message: 'Request for: Laptop Dell XPS 15 (SN: LAP-DEL-XPS15-005). From: 2025-08-10 To: 2025-08-15. Notes: Urgent laptop need.',
+                                id: 3,
+                                equipment: [dummyAllEquipment[3]],
+                                userId: dummyUsers[2].id,
+                                user: dummyUsers[2],
+                                message: 'Server rack for temporary lab setup next week.',
                                 status: RequestStatus.PENDING,
+                                startDate: '2025-07-28',
+                                returnDate: '2025-08-01',
+                                checkoutDate: null,
                                 returnedAt: null,
-                                createdAt: '2025-07-19T15:00:00Z',
-                                updatedAt: '2025-07-19T15:00:00Z',
-                            }
+                                createdAt: '2025-07-16T09:00:00Z',
+                                updatedAt: '2025-07-16T09:00:00Z',
+                            },
                         ]);
-                    }, 800)
+                    }, 500)
                 );
-                setPendingRequests(dummyRequests);
-
+                setPendingRequests(dummyData);
             } catch (err) {
                 console.error("Failed to fetch pending requests:", err);
-                setError("Failed to load pending requests. Please try again.");
+                setError("Failed to load requests. Please try again.");
             } finally {
                 setLoading(false);
             }
@@ -85,24 +91,58 @@ export default function ManageRequestsPage() {
         fetchPendingRequests();
     }, []);
 
-    const handleRequestAction = async (requestId: number, action: 'approve' | 'reject') => {
-        setLoading(true);
-        setError(null);
-        try {
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            setPendingRequests(prevRequests =>
-                prevRequests.filter(req => req.id !== requestId)
-            );
-            alert(`Request ${requestId} ${action}d successfully!`);
-
-        } catch (err) {
-            console.error(`Failed to ${action} request ${requestId}:`, err);
-            setError(`Failed to ${action} request. Please try again.`);
-        } finally {
-            setLoading(false);
+    const filteredRequests = useMemo(() => {
+        if (!searchTerm) {
+            return pendingRequests;
         }
-    };
+        const lowerCaseSearchTerm = searchTerm.toLowerCase();
+        return pendingRequests.filter(request =>
+            request.user.firstName.toLowerCase().includes(lowerCaseSearchTerm) ||
+            request.user.lastName.toLowerCase().includes(lowerCaseSearchTerm) ||
+            request.user.email.toLowerCase().includes(lowerCaseSearchTerm) ||
+            request.equipment.some(eq => eq.name.toLowerCase().includes(lowerCaseSearchTerm)) ||
+            request.message.toLowerCase().includes(lowerCaseSearchTerm)
+        );
+    }, [pendingRequests, searchTerm]);
+
+    const handleAction = useCallback(async (requestId: number, action: 'approve' | 'reject') => {
+        const requestToUpdate = pendingRequests.find(req => req.id === requestId);
+        if (!requestToUpdate) return;
+
+        console.log(`Attempting to ${action} request ${requestId}`);
+        alert(`Request ${requestId} ${action}d! (Simulated)`);
+
+        setPendingRequests(prevRequests =>
+            prevRequests.filter(req => req.id !== requestId)
+        );
+
+        // In a real application, you would make an API call here:
+        // try {
+        //     const response = await fetch(`/api/equipment-requests/${requestId}/${action}`, {
+        //         method: 'PUT',
+        //         headers: { 'Content-Type': 'application/json' },
+        //         body: JSON.stringify({
+        //             // potentially send status and checkout date for approve
+        //             // or rejection reason for reject
+        //         })
+        //     });
+        //     if (!response.ok) {
+        //         throw new Error('Failed to update request status');
+        //     }
+        //     // After successful API call, remove from pending list
+        //     setPendingRequests(prevRequests =>
+        //         prevRequests.filter(req => req.id !== requestId)
+        //     );
+        // } catch (err) {
+        //     console.error(`Error ${action}ing request:`, err);
+        //     setError(`Failed to ${action} request ${requestId}. Please try again.`);
+        //     // Optionally, revert the UI change if API fails
+        // }
+    }, [pendingRequests]);
+
+    const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value);
+    }, []);
 
     if (loading) {
         return (
@@ -116,7 +156,7 @@ export default function ManageRequestsPage() {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 p-4">
                 <p className="text-xl font-semibold mb-4">Error: {error}</p>
-                <Link href="/" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <Link href="/dashboard" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                     Go back to Dashboard
                 </Link>
             </div>
@@ -128,18 +168,28 @@ export default function ManageRequestsPage() {
             <div className="container mx-auto px-4 max-w-4xl">
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Manage Pending Requests</h1>
-                    <Link href="/" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                    <Link href="/dashboard" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
                         Back to Dashboard
                     </Link>
                 </div>
 
-                {pendingRequests.length === 0 ? (
+                <div className="mb-6">
+                    <input
+                        type="text"
+                        placeholder="Search requests by user, equipment, or message..."
+                        className="w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                    />
+                </div>
+
+                {filteredRequests.length === 0 ? (
                     <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md text-center">
-                        <p className="text-gray-600 dark:text-gray-400 text-lg">No pending requests at this time.</p>
+                        <p className="text-gray-600 dark:text-gray-400 text-lg">No pending requests found.</p>
                     </div>
                 ) : (
                     <div className="space-y-6">
-                        {pendingRequests.map((request) => (
+                        {filteredRequests.map((request) => (
                             <div key={request.id} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
                                 <div className="flex items-center justify-between mb-4 pb-4 border-b dark:border-gray-700">
                                     <div>
@@ -157,13 +207,11 @@ export default function ManageRequestsPage() {
 
                                 <div className="mb-4">
                                     <p className="text-gray-700 dark:text-gray-300 mb-2">
+                                        <span className="font-semibold">Requested Period:</span> {new Date(request.startDate).toLocaleDateString()} - {new Date(request.returnDate).toLocaleDateString()}
+                                    </p>
+                                    <p className="text-gray-700 dark:text-gray-300">
                                         <span className="font-semibold">Message:</span> {request.message}
                                     </p>
-                                    {request.createdAt && (
-                                        <p className="text-gray-700 dark:text-gray-300 text-sm">
-                                            <span className="font-semibold">Requested On:</span> {new Date(request.createdAt).toLocaleDateString()}
-                                        </p>
-                                    )}
                                 </div>
 
                                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Requested Equipment:</h3>
@@ -171,8 +219,8 @@ export default function ManageRequestsPage() {
                                     {request.equipment && request.equipment.length > 0 ? (
                                         request.equipment.map(eq => (
                                             <li key={eq.id} className="flex items-center text-gray-700 dark:text-gray-300">
-                                                <img src={eq.pathToPhoto} alt={eq.name} className="w-8 h-8 rounded-full mr-3" />
-                                                <span>{eq.name} (Serial: {eq.serialNumber}) - <span className={`${getConditionColor(eq.condition)} px-2 py-0.5 rounded-full text-xs`}>{eq.condition.replace(/_/g, ' ')}</span></span>
+                                                <Image src={eq.pathToPhoto} alt={eq.name} className="w-8 h-8 rounded-full mr-3" />
+                                                <span>{eq.name} (Serial: {eq.serialNumber})</span>
                                             </li>
                                         ))
                                     ) : (
@@ -180,16 +228,16 @@ export default function ManageRequestsPage() {
                                     )}
                                 </ul>
 
-                                <div className="flex justify-end space-x-3 mt-4">
+                                <div className="flex justify-end space-x-3">
                                     <button
-                                        onClick={() => handleRequestAction(request.id, 'approve')}
-                                        className="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
+                                        onClick={() => handleAction(request.id, 'approve')}
+                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 transition-colors duration-200"
                                     >
                                         Approve
                                     </button>
                                     <button
-                                        onClick={() => handleRequestAction(request.id, 'reject')}
-                                        className="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200"
+                                        onClick={() => handleAction(request.id, 'reject')}
+                                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 transition-colors duration-200"
                                     >
                                         Reject
                                     </button>
