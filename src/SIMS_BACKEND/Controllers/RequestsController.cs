@@ -21,6 +21,14 @@ public class RequestsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Request>> CreateRequest([FromBody] CreateRequestDto requestDto)
     {
+        if (requestDto.StartDate < DateTime.UtcNow.Date)
+        {
+            return BadRequest("Start date cannot be in the past");
+        }
+        if (requestDto.StartDate >= requestDto.EndDate)
+        {
+            return BadRequest("End date must be after start date");
+        }
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var user = await _userManager.FindByIdAsync(userId);
 
@@ -43,6 +51,21 @@ public class RequestsController : ControllerBase
         if (unavailableItems.Any())
         {
             return BadRequest($"Equipment items are not available: {string.Join(", ", unavailableItems.Select(e => e.Name))}");
+        }
+        var overlappingRequests = await _context.Requests
+       .Include(r => r.Equipment)
+       .Where(r => r.Status == RequestStatus.APPROVED &&
+                  r.Equipment.Any(e => requestDto.EquipmentIds.Contains(e.Id)) &&
+                  !(requestDto.EndDate <= r.StartDate || requestDto.StartDate >= r.EndDate))
+       .ToListAsync();
+
+        if (overlappingRequests.Any())
+        {
+            var conflictingEquipmentNames = overlappingRequests
+                .SelectMany(r => r.Equipment.Where(e => requestDto.EquipmentIds.Contains(e.Id)))
+                .Select(e => e.Name)
+                .Distinct();
+            return BadRequest($"Equipment is already booked during this period: {string.Join(", ", conflictingEquipmentNames)}");
         }
 
         var request = new Request
