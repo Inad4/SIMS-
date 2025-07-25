@@ -64,7 +64,7 @@ export default function PersonalBorrowingHistoryPage() {
         };
 
         fetchBorrowingHistory();
-    });
+    }, []);
 
     if (loading) {
         return (

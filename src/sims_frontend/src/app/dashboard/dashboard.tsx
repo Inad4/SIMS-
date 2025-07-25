@@ -55,7 +55,7 @@ export default function DashboardContent() {
         };
 
         fetchSchool();
-    });
+    }, []);
 
 
     // Effect to update URL whenever search/filter states change

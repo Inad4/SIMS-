@@ -22,13 +22,13 @@ export default function LoginPage() {
                 }
             }
             fetchUser();
-        })
+        }, [])
 
     const handleLogin = async () => {
         setErrorMessage("");
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/login`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_AUTH_BASE}/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

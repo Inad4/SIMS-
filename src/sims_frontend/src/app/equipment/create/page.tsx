@@ -45,7 +45,7 @@ export default function CreateEquipmentPage() {
             setUser(us);
         }
         fetchUser();
-    })
+    }, [])
 
     const handleSubmit = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();

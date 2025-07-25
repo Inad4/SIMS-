@@ -62,7 +62,7 @@ export default function AdminLogReturnsPage() {
         };
 
         fetchCheckedOutRequests();
-    });
+    }, []);
 
     const filteredRequests = useMemo(() => {
         if (!searchTerm) {

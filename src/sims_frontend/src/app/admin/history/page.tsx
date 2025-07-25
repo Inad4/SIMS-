@@ -64,7 +64,7 @@ export default function AdminBorrowingHistoryPage() {
         };
 
         fetchAllRequests();
-    });
+    }, []);
 
     const filteredRequests = useMemo(() => {
         let currentFilteredList = allRequests;

@@ -1,4 +1,4 @@
-import { Equipment, EquipmentStatus, RequestStatus, User } from "@/types";
+import { Equipment, EquipmentStatus, RequestStatus, User, School } from "@/types";
 
 export function getConditionColor(status: EquipmentStatus | RequestStatus): string {
     switch (status) {
@@ -124,12 +124,45 @@ export function isStringANumber(str: string): boolean {
 
 
 export async function login(): Promise<User | null>{
-    /*const jwt = localStorage.get("jwt");
+    const jwt = localStorage.getItem("jwt");
     if (!jwt) return null;
 
-    //check if jwt is expired -> use refresh token -> get user Id somehow -> /api/user/{id} -> return User*/
+    try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_AUTH_BASE}/account/my`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem("jwt")}`
+            }
+        });
+        if (!res.ok){
+            if (res.status == 401){
+                const refresh_token = localStorage.getItem("refresh_token");
+                if (!refresh_token) return null;
 
-    return {
+                const res_refresh = await fetch(`${process.env.NEXT_PUBLIC_AUTH_BASE}/refresh_session`, {
+                    method: "POST",
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem("jwt")}`
+                    }, 
+                    body: JSON.stringify({"refresh_token": refresh_token})
+                });
+                if (!res_refresh.ok) {
+                    console.log("Failed to fetch user data");
+                    return null;
+                }
+            }
+        }
+        const obj = await res.json();
+        
+        return obj;
+    } catch (err) {
+        console.error("Failed to fetch user:", err);
+    }
+
+    return null;
+
+    //check if jwt is expired -> use refresh token -> get user Id somehow -> /api/user/{id} -> return User
+
+    /*return {
         id: "admin_1",
         email: "admin@example.com",
         firstName: "Admin",
@@ -138,5 +171,17 @@ export async function login(): Promise<User | null>{
         createdAt: null,
         updatedAt: null,
         isAdmin: true
-    };
+    };*/
 }
+
+
+export const getSchoolDisplayString = (school: School): string => {
+  const parts = [school.name];
+  if (school.city) {
+    parts.push(school.city);
+  }
+  if (school.address) {
+    parts.push(school.address);
+  }
+  return parts.join(' - ');
+};
