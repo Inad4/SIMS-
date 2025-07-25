@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.controller.expose.port: "true"
+    kompose.init.containers.command: echo Initializing api gateway service
+    kompose.service.healthcheck.readiness.start_period: 30s
+    kompose.service.healthcheck.readiness.test: CMD curl -f http://localhost:8009/health
+    kompose.service.readinessProbe.httpGet.port: "8009"
+    kompose.version: 1.36.0 (HEAD)
+  labels:
+    io.kompose.service: api-gateway-service
+  name: api-gateway-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: api-gateway-service
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.controller.expose.port: "true"
+        kompose.init.containers.command: echo Initializing api gateway service
+        kompose.service.healthcheck.readiness.start_period: 30s
+        kompose.service.healthcheck.readiness.test: CMD curl -f http://localhost:8009/health
+        kompose.service.readinessProbe.httpGet.port: "8009"
+        kompose.version: 1.36.0 (HEAD)
+      labels:
+        io.kompose.service: api-gateway-service
+    spec:
+      containers:
+        - image: api-gateway-service
+          name: api-gateway-service
+          ports:
+            - containerPort: 8009
+              protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+                - curl
+                - -f
+                - http://localhost:8009/health
+            initialDelaySeconds: 30
+      restartPolicy: Always

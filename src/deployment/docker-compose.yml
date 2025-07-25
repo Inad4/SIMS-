@@ -8,6 +8,9 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-aibest}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    labels:
+      kompose.init.containers.command: "echo Initializing auth postgres database"
+      kompose.controller.expose.port: true
     ports:
       - "5432:5432"
     networks:
@@ -23,6 +26,9 @@ services:
       - app-network
     volumes:
       - redis_data:/data
+    labels:
+      kompose.init.containers.command: "echo Initializing api gateway redis cache"
+      kompose.controller.expose.port: true
     restart: unless-stopped
 
   auth-service:
@@ -33,6 +39,12 @@ services:
       - "8010:8010"
     depends_on:
       - auth-postgres-db
+    labels:
+      kompose.init.containers.command: "echo Initializing auth service"
+      kompose.controller.expose.port: true
+      kompose.service.healthcheck.readiness.start_period: 30s
+      kompose.service.healthcheck.readiness.test: "CMD curl -f http://localhost:8010/health"
+      kompose.service.readinessProbe.httpGet.port: 8010
     networks:
       - app-network
     restart: unless-stopped
@@ -43,6 +55,12 @@ services:
       dockerfile: ./api_gateway_service/Dockerfile
     ports:
       - "8009:8009"
+    labels:
+      kompose.init.containers.command: "echo Initializing api gateway service"
+      kompose.controller.expose.port: true
+      kompose.service.healthcheck.readiness.start_period: 30s
+      kompose.service.healthcheck.readiness.test: "CMD curl -f http://localhost:8009/health"
+      kompose.service.readinessProbe.httpGet.port: 8009
     depends_on:
       - auth-service
       - api-gateway-redis
@@ -70,6 +88,9 @@ services:
       - "4318:4318" # OTLP HTTP receiver
     networks:
       - app-network
+    labels:
+      kompose.init.containers.command: "echo Initializing LGTM telemetry stack"
+      kompose.controller.expose.port: true
     environment:
       - GF_SERVER_ROOT_URL=http://localhost:8009/api/v1/telemetry/
       # - GF_SERVER_SERVE_FROM_SUB_PATH=true
