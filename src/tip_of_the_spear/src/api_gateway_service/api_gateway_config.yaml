@@ -49,3 +49,18 @@ versions:
               - admin
               - user
             cached: false
+      - path: /telemetry
+        strict_mode: false
+        service_addresses:
+          - telemetry:3000
+        auth:
+          auth_required: false
+          authorized_roles:
+            - user
+            - admin
+        endpoints:
+          - endpoint_path: /nz
+            authorized_roles:
+              - admin
+              - user
+            cached: false

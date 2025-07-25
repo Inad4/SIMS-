@@ -99,7 +99,7 @@ fn init_telemetry() -> opentelemetry_sdk::trace::SdkTracerProvider {
     global::set_text_map_propagator(TraceContextPropagator::new());
     let otlp_exporter = opentelemetry_otlp::SpanExporter::builder()
         .with_tonic()
-        .with_endpoint("http://localhost:4317")
+        .with_endpoint("http://telemetry:4317")
         .build()
         .expect("Failed to build the span exporter");
     let provider = opentelemetry_sdk::trace::SdkTracerProvider::builder()

@@ -1,6 +1,7 @@
 use actix_web::{HttpRequest, web};
 use config_yaml::config_yaml::{Endpoint, Route};
 use error::error::Error;
+use log::warn;
 use reqwest::{Client, Response};
 
 use crate::{
@@ -51,7 +52,8 @@ pub async fn route_request(
 
     let response = match request_builder.send().await {
         Ok(resp) => resp,
-        Err(_) => {
+        Err(e) => {
+            warn!("http route error: {}", e);
             return Ok(UniversalHttpResponse {
                 body: "".into(),
                 status: 404,
