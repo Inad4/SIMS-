@@ -61,7 +61,7 @@ export default function CreateEquipmentPage() {
         };
 
         try {
-            const url = `${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/equipment`;
+            const url = `${process.env.NEXT_PUBLIC_BACKEND_BASE}/api/Equipment`;
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
