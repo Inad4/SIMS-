@@ -41,7 +41,10 @@ public class EquipmentController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Equipment>> AddEquipment(Equipment equipment)
     {
-        equipment.Status = EquipmentStatus.AVAILABLE;
+        if (!Enum.IsDefined(typeof(EquipmentStatus), equipment.Status))
+        {
+            return BadRequest("Invalid status value.");
+        }
         equipment.CreatedAt = DateTime.UtcNow;
         equipment.SchoolId = int.Parse(User.FindFirst("SchoolId").Value);
 
