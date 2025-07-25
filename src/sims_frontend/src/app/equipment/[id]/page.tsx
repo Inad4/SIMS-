@@ -102,7 +102,7 @@ export default function EquipmentDetailPage({ params }: PageProps) {
       }
       {user.role === "admin" && equipment.status != EquipmentStatus.CHECKED_OUT && 
       <>
-      <button onClick={handleQrCodeGeneration} className="mt-8 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
+      <button onClick={() => router.push(`/equipment/${equipment.id}/edit`)} className="mt-8 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
         Edit
       </button><br />
       </>
@@ -111,7 +111,7 @@ export default function EquipmentDetailPage({ params }: PageProps) {
         Generate Qr Code
       </button>
       <br />
-      <button onClick={() => router.back()} className="mt-8 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
+      <button onClick={() => router.push("/dashboard")} className="mt-8 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
         Back to Dashboard
       </button>
     </div>

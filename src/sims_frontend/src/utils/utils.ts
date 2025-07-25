@@ -112,3 +112,13 @@ export function getCheckoutRequestId(equipment: Equipment): number | null {
 
   return null;
 }
+
+
+export function isStringANumber(str: string): boolean {
+  if (typeof str !== 'string' || str.trim() === '') {
+    return false;
+  }
+
+  const num = Number(str.trim());
+  return !isNaN(num) && isFinite(num);
+}

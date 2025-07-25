@@ -3,10 +3,13 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { EquipmentRequest, RequestStatus, Equipment, User, EquipmentStatus, School } from '@/types';
-import { getConditionColor } from '@/utils/utils';
+import { getConditionColor, isStringANumber } from '@/utils/utils';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 
 export default function AdminManageRequestsPage() {
+    const searchParams = useSearchParams();
+
     const [pendingRequests, setPendingRequests] = useState<EquipmentRequest[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -141,7 +144,11 @@ export default function AdminManageRequestsPage() {
                 ) : (
                     <div className="space-y-6">
                         {filteredRequests.map((request) => (
-                            <div key={request.id} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+                            <div key={request.id} 
+                            className={
+                                (searchParams.has("equipmentId") && isStringANumber(searchParams.get("equipmentId") as unknown as string) && request.equipment.find(eq => eq.id === parseInt(searchParams.get("equipmentId") as unknown as string)))
+                                 ? "bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl border border-blue-500 dark:border-blue-600 ring-2 ring-blue-400 dark:ring-blue-700" 
+                                 : "bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700"}>
                                 <div className="flex items-center justify-between mb-4 pb-4 border-b dark:border-gray-700">
                                     <div>
                                         <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
