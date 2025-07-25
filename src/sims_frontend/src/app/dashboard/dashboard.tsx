@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Equipment, EquipmentStatus, User, School } from '@/types';
 import { getConditionColor } from '@/utils/utils';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 
 interface DashboardContentProps {
     user: User;
@@ -12,13 +13,19 @@ interface DashboardContentProps {
 
 export default function DashboardContent({ user }: DashboardContentProps) {
     const router = useRouter();
+    const searchParams = useSearchParams();
+
+
     const [school, setSchool] = useState<School | null>(null); // Stores all fetched equipment
     const [selectedEquipmentList, setSelectedEquipmentList] = useState<Equipment[]>([]); // Stores full selected equipment objects
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    const [searchTerm, setSearchTerm] = useState<string>('');
-    const [filterCondition, setFilterCondition] = useState<EquipmentStatus | ''>('');
-    const [filterType, setFilterType] = useState<string>('');
+
+    const [searchTerm, setSearchTerm] = useState<string>(searchParams.get('search') || '');
+    const [filterCondition, setFilterCondition] = useState<EquipmentStatus | ''>(
+        (searchParams.get('condition') as EquipmentStatus) || ''
+    );
+    const [filterType, setFilterType] = useState<string>(searchParams.get('type') || '');
     const [selectionMode, setSelectionMode] = useState<boolean>(false);
 
 
@@ -47,6 +54,33 @@ export default function DashboardContent({ user }: DashboardContentProps) {
 
         fetchSchool();
     }, []);
+
+
+    // Effect to update URL whenever search/filter states change
+    useEffect(() => {
+        const currentParams = new URLSearchParams(searchParams.toString());
+
+        if (searchTerm) {
+        currentParams.set('search', searchTerm);
+        } else {
+        currentParams.delete('search');
+        }
+
+        if (filterCondition) {
+        currentParams.set('condition', filterCondition);
+        } else {
+        currentParams.delete('condition');
+        }
+
+        if (filterType) {
+        currentParams.set('type', filterType);
+        } else {
+        currentParams.delete('type');
+        }
+
+        router.replace(`?${currentParams.toString()}`, { scroll: false });
+    }, [searchTerm, filterCondition, filterType, router, searchParams]);
+
 
     const availableEquipmentTypes = useMemo(() => {
         const types = new Set<string>();
