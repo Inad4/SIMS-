@@ -1,0 +1,100 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+  # otel-lgtm:
+  #   image: grafana/otel-lgtm
+  #   container_name: otel-lgtm
+  #   ports:
+  #     - "3000:3000" # Grafana Web UI
+  #     - "4317:4317" # OTLP gRPC receiver
+  #     - "4318:4318" # OTLP HTTP receiver
+  #   # environment:
+  #   #   - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+  #   #   - OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+  #   volumes:
+  #     - lgtm_data:/data
+  #   restart: unless-stopped
+  # cpus: 0.5
+  # mem_limit: 512m
+  # deploy:
+  #   resources:
+  #     limits:
+  #       cpus: "0.5"
+  #       memory: 512M
+  #     reservations:
+  #       cpus: "0.25"
+
+  # grafana:
+  #   image: grafana/grafana
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - tempo
+
+  # tempo:
+  #   image: grafana/tempo:latest
+  #   container_name: tempo
+  #   volumes:
+  #     - ./tempo.yaml:/etc/tempo.yaml
+  #   ports:
+  #     - "3200:3200" # Tempo UI
+  #     - "4317:4317" # OTLP gRPC
+  #   command: ["-config.file=/etc/tempo.yaml"]
+
+  api_gateway_service:
+    build:
+      context: .
+      dockerfile: ./api_gateway_service/Dockerfile
+    ports:
+      - "8009:8009" # Example port mapping
+    # environment:
+    #   # Example environment variables for Service A
+    #   SERVICE_A_PORT: 8000
+    depends_on:
+      - auth_service
+    networks:
+      - app-network
+
+  auth_service:
+    build:
+      context: .
+      dockerfile: ./auth_service/Dockerfile
+    ports:
+      - "8010:8010" # Example port mapping
+    # environment:
+    #   # Example environment variables for Service A
+    #   SERVICE_A_PORT: 8000
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+  cargo_registry:
+  cargo_git:
+  lgtm_data:
+  target:
+  redis-data:
+
+networks:
+  app-network:
+    driver: bridge

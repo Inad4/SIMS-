@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use env::env::ENV;
 use log::{debug, info};
 use sqlx::migrate::MigrateDatabase;
@@ -19,7 +17,6 @@ pub async fn init_db() -> Result<Pool<Postgres>, sqlx::Error> {
     debug!("{}", &db_url);
 
     let pool = PgPoolOptions::new()
-        .idle_timeout(Duration::from_secs(9999))
         .max_connections(25)
         .connect(&db_url)
         .await?;

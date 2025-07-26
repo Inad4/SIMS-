@@ -7,7 +7,7 @@ use log::info;
 pub fn init_redis(redis_url: &String) -> Result<(), Error> {
     let client = redis::Client::open(redis_url.clone()).unwrap();
     let pool = r2d2::Pool::builder()
-        .connection_timeout(Duration::from_secs(9999))
+        .connection_timeout(Duration::from_secs(300))
         .build(client)
         .unwrap();
 

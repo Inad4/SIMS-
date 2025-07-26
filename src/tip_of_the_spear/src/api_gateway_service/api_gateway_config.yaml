@@ -1,12 +1,12 @@
-full_public_pem_url: http://auth-service:8010/public_pem
-full_redis_url: "redis://api-gateway-redis/"
+full_public_pem_url: http://localhost:8010/public_pem
+full_redis_url: "redis://127.0.0.1/"
 versions:
   - version: v1
     routes:
       - path: /auth
         strict_mode: true
         service_addresses:
-          - auth-service:8010
+          - localhost:8010
         auth:
           auth_required: false
           authorized_roles:
@@ -34,32 +34,24 @@ versions:
               - user
             cached: true
             expiration_time_seconds: 900
-      - path: /school
+      - path: /example2
         strict_mode: false
         service_addresses:
-          - backend-service:5128
+          - localhost:8002
+          - localhost:8003
         auth:
-          auth_required: false
+          auth_required: true
           authorized_roles:
-            - user
             - admin
         endpoints:
           - endpoint_path: /nz
+            request_type: Http
             authorized_roles:
               - admin
               - user
             cached: false
-      - path: /telemetry
-        strict_mode: false
-        service_addresses:
-          - telemetry:3000
-        auth:
-          auth_required: false
-          authorized_roles:
-            - user
-            - admin
-        endpoints:
-          - endpoint_path: /nz
+          - endpoint_path: /bomba
+            request_type: Http
             authorized_roles:
               - admin
               - user
