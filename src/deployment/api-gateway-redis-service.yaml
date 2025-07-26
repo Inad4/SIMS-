@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.controller.expose.port: "true"
+    kompose.init.containers.command: echo Initializing api gateway redis cache
+    kompose.version: 1.36.0 (HEAD)
+  labels:
+    io.kompose.service: api-gateway-redis
+  name: api-gateway-redis
+spec:
+  ports:
+    - name: "6379"
+      port: 6379
+      targetPort: 6379
+  selector:
+    io.kompose.service: api-gateway-redis

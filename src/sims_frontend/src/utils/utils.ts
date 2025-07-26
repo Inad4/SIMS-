@@ -140,15 +140,18 @@ export async function login(): Promise<User | null>{
 
                 const res_refresh = await fetch(`${process.env.NEXT_PUBLIC_AUTH_BASE}/refresh_session`, {
                     method: "POST",
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem("jwt")}`
-                    }, 
                     body: JSON.stringify({"refresh_token": refresh_token})
                 });
                 if (!res_refresh.ok) {
                     console.log("Failed to fetch user data");
                     return null;
                 }
+
+                const newJwt = (await res_refresh.json())["data"]["jwt"];
+
+                localStorage.setItem("jwt", newJwt);
+
+                return login();
             }
         }
         const obj = await res.json();

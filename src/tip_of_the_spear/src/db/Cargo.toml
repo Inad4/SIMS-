@@ -1,0 +1,18 @@
+[package]
+name = "db"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+rand = "0.8.5"
+serde = "1.0.217"
+utoipa = { version = "5.2.0", features=["chrono"] }
+utoipa-swagger-ui = { version = "9.0.0", features = ["actix-web", "vendored"] }
+chrono = { version = "0.4.39", features = ["serde"] }
+sqlx = { version = "0.8.3", features = [ "runtime-tokio", "postgres", "chrono", "macros" ] }
+tokio = { version = "1.43.0", features = ["full"] }
+argon2 = "0.5.3"
+dotenv = "0.15.0"
+lazy_static = "1.5.0"
+log = "0.4.27"
+env = { path = "../env" }

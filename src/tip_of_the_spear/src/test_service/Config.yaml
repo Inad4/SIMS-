@@ -1,0 +1,18 @@
+routes:
+  - path: /example
+    service_addresses:
+      - localhost:8000
+      - localhost:8001
+    auth:
+      auth_required: true
+      authorized_roles:
+        - admin
+        - user
+  - path: /example1
+    service_addresses:
+      - localhost:8002
+      - localhost:8003
+    auth:
+      auth_required: true
+      authorized_roles:
+        - admin

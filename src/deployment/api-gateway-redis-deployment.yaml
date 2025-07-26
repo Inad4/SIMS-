@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.controller.expose.port: "true"
+    kompose.init.containers.command: echo Initializing api gateway redis cache
+    kompose.version: 1.36.0 (HEAD)
+  labels:
+    io.kompose.service: api-gateway-redis
+  name: api-gateway-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: api-gateway-redis
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.controller.expose.port: "true"
+        kompose.init.containers.command: echo Initializing api gateway redis cache
+        kompose.version: 1.36.0 (HEAD)
+      labels:
+        io.kompose.service: api-gateway-redis
+    spec:
+      containers:
+        - image: redis:7-alpine
+          name: api-gateway-redis
+          ports:
+            - containerPort: 6379
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /data
+              name: redis-data
+      restartPolicy: Always
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: redis-data
