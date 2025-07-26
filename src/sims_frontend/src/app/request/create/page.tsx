@@ -24,7 +24,7 @@ export default function RequestFormPage() {
             if (idsParam) {
                 const us = await login();
                 if (!us){
-                    router.replace("/dashboard");
+                    router.replace("/");
                     return;
                 }
                 setUser(us);
@@ -93,7 +93,7 @@ export default function RequestFormPage() {
         console.log("Submitting Request:", newRequestPayload);
         alert("Request submitted! (Check console for data)");
 
-        router.push('/dashboard');
+        router.push('/');
     };
 
     if (loading) {
@@ -108,7 +108,7 @@ export default function RequestFormPage() {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 p-4">
                 <p className="text-xl font-semibold mb-4">{error}</p>
-                <Link href="/dashboard" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <Link href="/" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                     Go back to Dashboard
                 </Link>
             </div>
@@ -186,7 +186,7 @@ export default function RequestFormPage() {
                             >
                                 Submit Request
                             </button>
-                            <Link href="/dashboard" className="w-full text-center block text-gray-500 hover:underline dark:text-gray-400">
+                            <Link href="/" className="w-full text-center block text-gray-500 hover:underline dark:text-gray-400">
                                 Back to Dashboard
                             </Link>
                         </form>

@@ -18,7 +18,7 @@ export default function Navbar() {
         const fetchUser = async () => {
             const us = await login();
             if (us){
-                router.replace("/dashboard");
+                router.replace("/");
                 return;
             }
             setCurrentUser(us);
@@ -52,7 +52,7 @@ export default function Navbar() {
     return (
         <nav className="bg-white border-gray-200 dark:bg-gray-900">
           <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-          <Link href="/dashboard" className="flex items-center space-x-3 rtl:space-x-reverse">
+          <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
               <Image src="/logo.png" className="h-8" alt="Logo" width={32} height={32}/>
               <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">SIMS</span>
           </Link>
@@ -80,7 +80,7 @@ export default function Navbar() {
                 </div>
                 <ul className="py-2" aria-labelledby="user-menu-button">
                   <li>
-                  <Link href="/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">
+                  <Link href="/" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">
                       Dashboard
                   </Link>
                   </li>

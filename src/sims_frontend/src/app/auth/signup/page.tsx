@@ -37,7 +37,7 @@ export default function SignUpPage() {
         const fetchSchools = async () => {
             const us = await login();
             if (us){
-                router.replace("/dashboard");
+                router.replace("/");
                 return;
             }
             try {
@@ -93,7 +93,7 @@ export default function SignUpPage() {
             localStorage.setItem("jwt", data.data.jwt);
             localStorage.setItem("refresh_token", data.data.refresh_token);
             setSuccessMessage("Account created successfully!");
-            router.replace("/dashboard");
+            router.replace("/");
         } catch (error) {
             console.error('Signup error:', error);
             setErrorMessage("An unexpected error occurred. Please try again.");

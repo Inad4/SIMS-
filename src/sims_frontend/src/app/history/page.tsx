@@ -25,7 +25,7 @@ export default function PersonalBorrowingHistoryPage() {
 
             const us = await login();
             if (!us){
-                router.replace("/dashboard");
+                router.replace("/");
                 return;
             }
             setUser(us);
@@ -78,7 +78,7 @@ export default function PersonalBorrowingHistoryPage() {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 p-4">
                 <p className="text-xl font-semibold mb-4">Error: {error}</p>
-                <Link href="/dashboard" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <Link href="/" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                     Go back to Dashboard
                 </Link>
             </div>
@@ -90,7 +90,7 @@ export default function PersonalBorrowingHistoryPage() {
             <div className="container mx-auto px-4 max-w-4xl">
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Your Borrowing History</h1>
-                    <Link href="/dashboard" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                    <Link href="/" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
                         Back to Dashboard
                     </Link>
                 </div>

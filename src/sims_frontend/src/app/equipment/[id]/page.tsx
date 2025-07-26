@@ -40,7 +40,7 @@ export default function EquipmentDetailPage({ params }: PageProps) {
 
         const us = await login();
         if (!us){
-            router.replace("/dashboard");
+            router.replace("/");
             return;
         }
         setUser(us);
@@ -118,7 +118,7 @@ export default function EquipmentDetailPage({ params }: PageProps) {
         Generate Qr Code
       </button>
       <br />
-      <button onClick={() => router.push("/dashboard")} className="mt-8 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
+      <button onClick={() => router.push("/")} className="mt-8 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
         Back to Dashboard
       </button>
     </div>

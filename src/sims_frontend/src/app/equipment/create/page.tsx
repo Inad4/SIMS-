@@ -39,7 +39,7 @@ export default function CreateEquipmentPage() {
         const fetchUser = async () => {
             const us = await login();
             if (!us){
-                router.replace("/dashboard");
+                router.replace("/");
                 return;
             }
             setUser(us);

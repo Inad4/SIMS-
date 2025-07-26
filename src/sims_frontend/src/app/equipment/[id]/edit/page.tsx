@@ -42,7 +42,7 @@ export default function EditEquipmentPage({ params }: PageProps) {
 
       const us = await login();
       if (!us || !us.isAdmin){
-          router.replace("/dashboard");
+          router.replace("/");
           return;
       }
       setUser(us);

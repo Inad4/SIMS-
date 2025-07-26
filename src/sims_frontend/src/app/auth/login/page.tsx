@@ -17,7 +17,7 @@ export default function LoginPage() {
             const fetchUser = async () => {
                 const us = await login();
                 if (us){
-                    router.replace("/dashboard");
+                    router.replace("/");
                     return;
                 }
             }
@@ -44,7 +44,7 @@ export default function LoginPage() {
             
             localStorage.setItem("jwt", data.data.jwt);
             localStorage.setItem("refresh_token", data.data.refresh_token);
-            router.replace("/dashboard");
+            router.replace("/");
         } catch (error) {
             console.error('Login error:', error);
             setErrorMessage("An unexpected error occurred. Please try again.");
