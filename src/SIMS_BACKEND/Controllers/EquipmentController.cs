@@ -9,14 +9,11 @@ using System.Security.Claims;
 public class EquipmentController : ControllerBase
 {
     private readonly SharedDbContext _context;
-    private readonly UserManager<User> _userManager;
 
     public EquipmentController(
-        SharedDbContext context,
-        UserManager<User> userManager)
+        SharedDbContext context)
     {
         _context = context;
-        _userManager = userManager;
     }
 
 
