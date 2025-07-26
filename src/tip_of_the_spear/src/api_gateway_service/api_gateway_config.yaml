@@ -64,3 +64,19 @@ versions:
               - admin
               - user
             cached: false
+      - path: /dashboard
+        strict_mode: false
+        is_root_path: true
+        service_addresses:
+          - frontend:6000
+        auth:
+          auth_required: false
+          authorized_roles:
+            - user
+            - admin
+        endpoints:
+          - endpoint_path: /nz
+            authorized_roles:
+              - admin
+              - user
+            cached: false

@@ -19,9 +19,21 @@ pub fn insure_config_yaml_is_correct(config_yaml: &ConfigYaml) -> () {
     }
     let mut paths: Vec<&String> = Vec::with_capacity(number_of_routes);
     let mut ports = Vec::with_capacity(number_of_routes);
+    let mut main_root_endpoint: bool = false;
     for version in &config_yaml.versions {
         for route in &version.routes {
             paths.push(&route.path);
+
+            let is_root_path = match route.is_root_path {
+                Some(e) => e,
+                None => false,
+            };
+            if is_root_path && main_root_endpoint {
+                panic!("there cant be more than 1 root path");
+            }
+            if is_root_path {
+                main_root_endpoint = is_root_path;
+            }
 
             for endpoint in &route.endpoints {
                 if endpoint.cached && endpoint.expiration_time_seconds.is_none() {

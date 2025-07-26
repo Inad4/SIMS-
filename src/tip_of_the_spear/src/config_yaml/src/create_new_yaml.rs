@@ -14,6 +14,7 @@ pub fn create_new_yaml() -> () {
                 Route {
                     path: "/auth".into(),
                     service_addresses: vec!["localhost:8000".into(), "localhost:8001".into()],
+                    is_root_path: None,
                     strict_mode: Some(false),
                     auth: Auth {
                         auth_required: true,
@@ -37,6 +38,7 @@ pub fn create_new_yaml() -> () {
                 Route {
                     path: "/example2".into(),
                     service_addresses: vec!["localhost:8002".into(), "localhost:8003".into()],
+                    is_root_path: None,
                     strict_mode: Some(false),
                     auth: Auth {
                         auth_required: true,

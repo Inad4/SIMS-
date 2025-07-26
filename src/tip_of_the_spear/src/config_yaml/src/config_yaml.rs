@@ -18,6 +18,7 @@ pub struct Version {
 #[derive(Deserialize, Default, Serialize, Debug, PartialEq, Clone)]
 pub struct Route {
     pub path: String,
+    pub is_root_path: Option<bool>,
     pub strict_mode: Option<bool>,
     pub service_addresses: Vec<String>,
     pub auth: Auth,

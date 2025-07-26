@@ -79,6 +79,16 @@ services:
       - app-network
     restart: unless-stopped
 
+  frontend:
+    build:
+      context: ../sims_frontend/
+      dockerfile: ./Dockerfile
+    ports:
+      - "6000:6000"
+    networks:
+      - app-network
+    restart: unless-stopped
+
   telemetry:
     image: grafana/otel-lgtm
     container_name: telemetry
