@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { EquipmentRequest, EquipmentStatus, User, School } from '@/types';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { login } from '@/utils/utils';
 
 export default function AdminLogReturnsPage() {
