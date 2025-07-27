@@ -3,6 +3,10 @@ kind: Deployment
 metadata:
   annotations:
     kompose.cmd: kompose convert
+    kompose.controller.expose.port: "true"
+    kompose.init.containers.command: echo Initializing backend service
+    kompose.init.containers.image: docker.io/library/backend-service:latest
+    kompose.service.readinessProbe.httpGet.port: "5128"
     kompose.version: 1.36.0 (HEAD)
   labels:
     io.kompose.service: backend-service
@@ -16,16 +20,25 @@ spec:
     metadata:
       annotations:
         kompose.cmd: kompose convert
+        kompose.controller.expose.port: "true"
+        kompose.init.containers.command: echo Initializing backend service
+        kompose.init.containers.image: docker.io/library/backend-service:latest
+        kompose.service.readinessProbe.httpGet.port: "5128"
         kompose.version: 1.36.0 (HEAD)
       labels:
         io.kompose.service: backend-service
     spec:
       containers:
-        - image: backend-service
+        - image: backend-service:latest
           name: backend-service
           ports:
             - containerPort: 5128
               protocol: TCP
             - containerPort: 8080
               protocol: TCP
+      initContainers:
+        - command:
+            - echo Initializing backend service
+          image: docker.io/library/backend-service:latest
+          name: init-service
       restartPolicy: Always

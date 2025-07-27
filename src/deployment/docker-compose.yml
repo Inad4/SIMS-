@@ -32,6 +32,7 @@ services:
     restart: unless-stopped
 
   auth-service:
+    # image: tip_of_the_spear:latest
     build:
       context: ../tip_of_the_spear/src/
       dockerfile: ./auth_service/Dockerfile
@@ -45,11 +46,13 @@ services:
       kompose.service.healthcheck.readiness.start_period: 30s
       kompose.service.healthcheck.readiness.test: "CMD curl -f http://localhost:8010/health"
       kompose.service.readinessProbe.httpGet.port: 8010
+      kompose.init.containers.image: docker.io/library/deployment-auth-service:latest
     networks:
       - app-network
     restart: unless-stopped
 
   api-gateway-service:
+    # image: api-gateway-service:latest
     build:
       context: ../tip_of_the_spear/src/
       dockerfile: ./api_gateway_service/Dockerfile
@@ -61,6 +64,7 @@ services:
       kompose.service.healthcheck.readiness.start_period: 30s
       kompose.service.healthcheck.readiness.test: "CMD curl -f http://localhost:8009/health"
       kompose.service.readinessProbe.httpGet.port: 8009
+      kompose.init.containers.image: docker.io/library/deployment-api-gateway-service:latest
     depends_on:
       - auth-service
       - api-gateway-redis
@@ -69,25 +73,52 @@ services:
     restart: unless-stopped
 
   backend-service:
+    # image: backend-service:latest
     build:
       context: ../
       dockerfile: ./SIMS_BACKEND/Dockerfile
     ports:
       - "5128:5128"
       - "8080:8080"
+    labels:
+      kompose.init.containers.command: "echo Initializing backend service"
+      kompose.controller.expose.port: true
+      kompose.service.readinessProbe.httpGet.port: 5128
+      kompose.init.containers.image: docker.io/library/backend-service:latest
     networks:
       - app-network
     restart: unless-stopped
 
   frontend:
+    # image: frontend:latest
     build:
       context: ../sims_frontend/
       dockerfile: ./Dockerfile
     ports:
       - "6000:6000"
+    labels:
+      kompose.init.containers.command: "echo Initializing frontend"
+      kompose.controller.expose.port: true
+      kompose.service.readinessProbe.httpGet.port: 5128
+      kompose.init.containers.image: docker.io/library/deployment-frontend:latest
     networks:
       - app-network
     restart: unless-stopped
+
+  otel-collector:
+    image: otel/opentelemetry-collector:latest
+    container_name: otel-collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    ports:
+      - "54317:4317" # OTLP gRPC
+      - "54318:4318" # OTLP HTTP
+    networks:
+      - app-network
+    labels:
+      kompose.init.containers.command: "echo Initializing OTEL Collector"
+      kompose.controller.expose.port: true
 
   telemetry:
     image: grafana/otel-lgtm

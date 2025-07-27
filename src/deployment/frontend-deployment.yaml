@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.controller.expose.port: "true"
+    kompose.init.containers.command: echo Initializing frontend
+    kompose.init.containers.image: docker.io/library/deployment-frontend:latest
+    kompose.service.readinessProbe.httpGet.port: "5128"
+    kompose.version: 1.36.0 (HEAD)
+  labels:
+    io.kompose.service: frontend
+  name: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: frontend
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.controller.expose.port: "true"
+        kompose.init.containers.command: echo Initializing frontend
+        kompose.init.containers.image: docker.io/library/deployment-frontend:latest
+        kompose.service.readinessProbe.httpGet.port: "5128"
+        kompose.version: 1.36.0 (HEAD)
+      labels:
+        io.kompose.service: frontend
+    spec:
+      containers:
+        - image: frontend:latest
+          name: frontend
+          ports:
+            - containerPort: 6000
+              protocol: TCP
+      initContainers:
+        - command:
+            - echo Initializing frontend
+          image: docker.io/library/deployment-frontend:latest
+          name: init-service
+      restartPolicy: Always

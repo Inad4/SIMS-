@@ -5,6 +5,7 @@ metadata:
     kompose.cmd: kompose convert
     kompose.controller.expose.port: "true"
     kompose.init.containers.command: echo Initializing api gateway service
+    kompose.init.containers.image: docker.io/library/deployment-api-gateway-service:latest
     kompose.service.healthcheck.readiness.start_period: 30s
     kompose.service.healthcheck.readiness.test: CMD curl -f http://localhost:8009/health
     kompose.service.readinessProbe.httpGet.port: "8009"
@@ -23,6 +24,7 @@ spec:
         kompose.cmd: kompose convert
         kompose.controller.expose.port: "true"
         kompose.init.containers.command: echo Initializing api gateway service
+        kompose.init.containers.image: docker.io/library/deployment-api-gateway-service:latest
         kompose.service.healthcheck.readiness.start_period: 30s
         kompose.service.healthcheck.readiness.test: CMD curl -f http://localhost:8009/health
         kompose.service.readinessProbe.httpGet.port: "8009"
@@ -31,7 +33,7 @@ spec:
         io.kompose.service: api-gateway-service
     spec:
       containers:
-        - image: api-gateway-service
+        - image: api-gateway-service:latest
           name: api-gateway-service
           ports:
             - containerPort: 8009
@@ -43,4 +45,9 @@ spec:
                 - -f
                 - http://localhost:8009/health
             initialDelaySeconds: 30
+      initContainers:
+        - command:
+            - echo Initializing api gateway service
+          image: docker.io/library/deployment-api-gateway-service:latest
+          name: init-service
       restartPolicy: Always

@@ -5,6 +5,7 @@ metadata:
     kompose.cmd: kompose convert
     kompose.controller.expose.port: "true"
     kompose.init.containers.command: echo Initializing auth service
+    kompose.init.containers.image: docker.io/library/deployment-auth-service:latest
     kompose.service.healthcheck.readiness.start_period: 30s
     kompose.service.healthcheck.readiness.test: CMD curl -f http://localhost:8010/health
     kompose.service.readinessProbe.httpGet.port: "8010"
@@ -23,6 +24,7 @@ spec:
         kompose.cmd: kompose convert
         kompose.controller.expose.port: "true"
         kompose.init.containers.command: echo Initializing auth service
+        kompose.init.containers.image: docker.io/library/deployment-auth-service:latest
         kompose.service.healthcheck.readiness.start_period: 30s
         kompose.service.healthcheck.readiness.test: CMD curl -f http://localhost:8010/health
         kompose.service.readinessProbe.httpGet.port: "8010"
@@ -31,7 +33,7 @@ spec:
         io.kompose.service: auth-service
     spec:
       containers:
-        - image: auth-service
+        - image: tip_of_the_spear:latest
           name: auth-service
           ports:
             - containerPort: 8010
@@ -43,4 +45,9 @@ spec:
                 - -f
                 - http://localhost:8010/health
             initialDelaySeconds: 30
+      initContainers:
+        - command:
+            - echo Initializing auth service
+          image: docker.io/library/deployment-auth-service:latest
+          name: init-service
       restartPolicy: Always

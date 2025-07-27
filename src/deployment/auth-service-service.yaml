@@ -5,6 +5,7 @@ metadata:
     kompose.cmd: kompose convert
     kompose.controller.expose.port: "true"
     kompose.init.containers.command: echo Initializing auth service
+    kompose.init.containers.image: docker.io/library/deployment-auth-service:latest
     kompose.service.healthcheck.readiness.start_period: 30s
     kompose.service.healthcheck.readiness.test: CMD curl -f http://localhost:8010/health
     kompose.service.readinessProbe.httpGet.port: "8010"
