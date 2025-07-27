@@ -6,7 +6,7 @@ import Link from "next/link";
 import nextConfig from "../../next.config";
 
 import { User } from "@/types/user";
-import Image from "next/image";
+// import Image from "next/image";
 import { login } from "@/utils/utils";
 
 export default function Navbar() {
@@ -60,13 +60,18 @@ export default function Navbar() {
           }
           className="flex items-center space-x-3 rtl:space-x-reverse"
         >
-          <Image
+          {/* <Image
             src="/logo.png"
+            // src={
+            //   nextConfig.assetPrefix === undefined
+            //     ? "/logo.png"
+            //     : `${nextConfig.assetPrefix}/logo.png`
+            // }
             className="h-8"
             alt="Logo"
             width={32}
             height={32}
-          />
+          /> */}
           <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">
             SIMS
           </span>

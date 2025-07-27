@@ -1,8 +1,7 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   output: "standalone",
-  // basePath: "/api/v1/dashboard", // Set the base path to /dashboard
+  // basePath: "/api/v1/dashboard/",
   assetPrefix: "/api/v1/dashboard/",
 };
 
