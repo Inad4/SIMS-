@@ -177,7 +177,11 @@ export async function login(): Promise<User | null> {
         return login();
       }
     }
-    const obj = await res.json();
+    const obj: User = await res.json();
+
+    obj.schoolId = obj.schoolId || 1;
+    obj.email = obj.userName + "@gmail.com";
+    obj.isAdmin = obj.isAdmin || true;
 
     return obj;
   } catch (err) {
