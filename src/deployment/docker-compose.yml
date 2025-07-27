@@ -105,20 +105,20 @@ services:
       - app-network
     restart: unless-stopped
 
-  otel-collector:
-    image: otel/opentelemetry-collector:latest
-    container_name: otel-collector
-    command: ["--config=/etc/otel-collector-config.yaml"]
-    volumes:
-      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
-    ports:
-      - "54317:4317" # OTLP gRPC
-      - "54318:4318" # OTLP HTTP
-    networks:
-      - app-network
-    labels:
-      kompose.init.containers.command: "echo Initializing OTEL Collector"
-      kompose.controller.expose.port: true
+  # otel-collector:
+  #   image: otel/opentelemetry-collector:latest
+  #   container_name: otel-collector
+  #   command: ["--config=/etc/otel-collector-config.yaml"]
+  #   volumes:
+  #     - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+  #   ports:
+  #     - "54317:4317" # OTLP gRPC
+  #     - "54318:4318" # OTLP HTTP
+  #   networks:
+  #     - app-network
+  #   labels:
+  #     kompose.init.containers.command: "echo Initializing OTEL Collector"
+  #     kompose.controller.expose.port: true
 
   telemetry:
     image: grafana/otel-lgtm
