@@ -8,27 +8,43 @@ versions:
         service_addresses:
           - auth-service:8010
         auth:
-          auth_required: false
+          full_auth_lockdown: false
           authorized_roles:
             - admin
             - user
         endpoints:
           - endpoint_path: /login
+            auth_required: false
             authorized_roles:
               - admin
               - user
             cached: false
           - endpoint_path: /api-docs/*
+            auth_required: false
             authorized_roles:
               - admin
               - user
             cached: false
           - endpoint_path: /signup
+            auth_required: false
+            authorized_roles:
+              - admin
+              - user
+            cached: false
+          - endpoint_path: /account/me
+            auth_required: true
+            authorized_roles:
+              - admin
+              - user
+            cached: false
+          - endpoint_path: /refresh_session
+            auth_required: false
             authorized_roles:
               - admin
               - user
             cached: false
           - endpoint_path: /public_pem
+            auth_required: false
             authorized_roles:
               - admin
               - user
@@ -39,12 +55,13 @@ versions:
         service_addresses:
           - backend-service:5128
         auth:
-          auth_required: false
+          full_auth_lockdown: false
           authorized_roles:
             - user
             - admin
         endpoints:
           - endpoint_path: /nz
+            auth_required: false
             authorized_roles:
               - admin
               - user
@@ -54,12 +71,13 @@ versions:
         service_addresses:
           - telemetry:3000
         auth:
-          auth_required: false
+          full_auth_lockdown: false
           authorized_roles:
             - user
             - admin
         endpoints:
           - endpoint_path: /nz
+            auth_required: false
             authorized_roles:
               - admin
               - user
@@ -70,12 +88,13 @@ versions:
         service_addresses:
           - frontend:6000
         auth:
-          auth_required: false
+          full_auth_lockdown: false
           authorized_roles:
             - user
             - admin
         endpoints:
           - endpoint_path: /nz
+            auth_required: false
             authorized_roles:
               - admin
               - user

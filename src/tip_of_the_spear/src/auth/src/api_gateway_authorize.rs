@@ -9,6 +9,7 @@ use actix_web::HttpRequest;
 // };
 use config_yaml::config_yaml::{Endpoint, Route};
 use error::error::Error;
+use log::warn;
 // use std::future::{Ready, ready};
 // use std::rc::Rc;
 
@@ -28,9 +29,12 @@ pub async fn api_gateway_authorize(
     endpoint_yaml_data: &Option<Endpoint>,
     req: &HttpRequest,
 ) -> Result<Option<AccountData>, Error> {
-    if !yaml_route_data.auth.auth_required {
-        return Ok(None::<AccountData>);
-    }
+    // if !yaml_route_data.auth.full_auth_lockdown {
+    //     return Ok(None::<AccountData>);
+    // }
+
+    let autorization_is_enabled: bool = yaml_route_data.auth.full_auth_lockdown
+        || endpoint_yaml_data.as_ref().is_some_and(|e| e.auth_required);
 
     let auth_header = req
         .headers()
@@ -38,18 +42,20 @@ pub async fn api_gateway_authorize(
         .and_then(|h| h.to_str().ok())
         .map(|auth| auth.to_string());
 
-    if endpoint_yaml_data.is_none() && auth_header.is_none() {
+    if autorization_is_enabled && auth_header.is_none() {
         return Err(Error::Unauthorized(
             "Authorization header required for this endpoint".into(),
         ));
     }
 
+    if auth_header.is_none() {
+        return Ok(None::<AccountData>);
+    }
+
     let token = match auth_header {
         Some(auth) if auth.starts_with("Bearer ") => auth.trim_start_matches("Bearer ").to_string(),
         _ => {
-            return Err(Error::Unauthorized(
-                "Missing or invalid Authorization header".into(),
-            ));
+            return Err(Error::Unauthorized("Invalid Authorization header".into()));
         }
     };
 
@@ -66,19 +72,27 @@ pub async fn api_gateway_authorize(
             .roles
             .iter()
             .any(|role| authorized_roles.contains(role))
+        && autorization_is_enabled
     {
         return Err(Error::Unauthorized(
             "User does not have the required roles for this endpoint".into(),
         ));
     }
 
-    let header_data = Some(AccountData {
+    let header_data = AccountData {
         bearer_token: token,
         x_user_id: jwt_data.sub,
         x_roles: jwt_data.roles,
-    });
+    };
 
-    Ok(header_data)
+    warn!(
+        r#"API GATEWAY AUTH HEADERS: {} {} {}"#,
+        &header_data.x_roles.join(","),
+        &header_data.x_user_id,
+        &header_data.bearer_token
+    );
+
+    Ok(Some(header_data))
 }
 
 // pub struct ApiGatewayAuthMiddleware;

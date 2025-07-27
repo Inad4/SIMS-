@@ -31,6 +31,7 @@ impl Modify for BearerAuthAddon {
         routes::post_login::post_login,
         routes::post_signup::post_signup,
         routes::get_public_pem::get_public_pem,
+        routes::get_account_me::get_account_me,
         routes::post_refresh_session::post_refresh_session
     ),
     tags(

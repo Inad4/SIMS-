@@ -17,19 +17,21 @@ pub fn create_new_yaml() -> () {
                     is_root_path: None,
                     strict_mode: Some(false),
                     auth: Auth {
-                        auth_required: true,
+                        full_auth_lockdown: true,
                         authorized_roles: vec!["admin".into(), "user".into()],
                     },
                     endpoints: vec![
                         Endpoint {
                             endpoint_path: "/login".into(),
                             authorized_roles: vec!["admin".into(), "user".into()],
+                            auth_required: false,
                             cached: false,
                             expiration_time_seconds: Some(300),
                         },
                         Endpoint {
                             endpoint_path: "/signup".into(),
                             authorized_roles: vec!["admin".into(), "user".into()],
+                            auth_required: false,
                             cached: false,
                             expiration_time_seconds: Some(300),
                         },
@@ -41,19 +43,21 @@ pub fn create_new_yaml() -> () {
                     is_root_path: None,
                     strict_mode: Some(false),
                     auth: Auth {
-                        auth_required: true,
+                        full_auth_lockdown: true,
                         authorized_roles: vec!["admin".into()],
                     },
                     endpoints: vec![
                         Endpoint {
                             endpoint_path: "/nz".into(),
                             authorized_roles: vec!["admin".into(), "user".into()],
+                            auth_required: false,
                             cached: false,
                             expiration_time_seconds: Some(300),
                         },
                         Endpoint {
                             endpoint_path: "/bomba".into(),
                             authorized_roles: vec!["admin".into(), "user".into()],
+                            auth_required: false,
                             cached: false,
                             expiration_time_seconds: Some(300),
                         },

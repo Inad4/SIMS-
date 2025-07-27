@@ -3,8 +3,9 @@ use auth::{
     account::get_account_by_id::get_account_by_id, microservice_auth_middleware::HeaderData,
 };
 use error::error::Error;
+use log::info;
 use serde::Serialize;
-use utoipa::ToSchema;
+use utoipa::{openapi::info, ToSchema};
 
 #[derive(Serialize, Debug, ToSchema)]
 #[schema(as = Get::Auth::Account::Me::Res)]
@@ -44,6 +45,10 @@ pub async fn get_account_me(req: HttpRequest) -> Result<HttpResponse, Error> {
         None => return Err(Error::Unauthorized("Unauthorized access".to_string())),
         Some(e) => e,
     };
+
+    info!("{}", &token_data.bearer_token);
+    info!("{}", &token_data.x_roles);
+    info!("{}", &token_data.x_user_id);
 
     let account = get_account_by_id(token_data.x_user_id).await?;
 

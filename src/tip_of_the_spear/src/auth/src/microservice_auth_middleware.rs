@@ -4,6 +4,8 @@ use actix_web::{
     dev::{Service, ServiceRequest, ServiceResponse, Transform, forward_ready},
 };
 use error::error::Error as ErrorHandler;
+use log::warn;
+use sqlx::Decode;
 use std::future::{Ready, ready};
 use std::rc::Rc;
 
@@ -31,7 +33,7 @@ where
 pub struct AuthMiddlewareService<S> {
     service: Rc<S>,
 }
-#[derive(sqlx::FromRow, Debug)]
+#[derive(sqlx::FromRow, Debug, Decode)]
 pub struct HeaderData {
     pub bearer_token: String,
     pub x_user_id: i32,
@@ -75,7 +77,7 @@ where
             let x_user_id = req.headers().get("X-User-Id").and_then(|h| h.to_str().ok());
             let x_user_id = match x_user_id {
                 Some(e) => e,
-                None => "12",
+                None => "-1",
             };
             let x_user_id: i32 = x_user_id
                 .parse()
@@ -100,12 +102,19 @@ where
             //     None => return Err(ErrorHandler::Unauthorized("No X-Roles".to_string()).into()),
             // };
 
-            // fix this woltar
-            req.extensions_mut().insert(HeaderData {
+            let headers = HeaderData {
                 x_roles,
                 x_user_id,
                 bearer_token: token,
-            });
+            };
+
+            warn!(
+                r#"AUTH MIDDLEWARE HEADERS: {} {} {}"#,
+                &headers.x_roles, &headers.x_user_id, &headers.bearer_token
+            );
+
+            // fix this woltar
+            req.extensions_mut().insert(headers);
             return service.call(req).await;
         })
     }

@@ -44,7 +44,7 @@ pub fn insure_config_yaml_is_correct(config_yaml: &ConfigYaml) -> () {
                 }
             }
 
-            if route.auth.auth_required && route.auth.authorized_roles.len() == 0 {
+            if route.auth.full_auth_lockdown && route.auth.authorized_roles.len() == 0 {
                 panic!(
                     "authorization is activated at {}, but there are no authorized roles set!",
                     &route.path

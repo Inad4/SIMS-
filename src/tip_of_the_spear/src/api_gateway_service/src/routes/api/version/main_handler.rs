@@ -26,6 +26,7 @@ pub async fn main_handler(
         .split('/')
         .skip(3)
         .collect();
+    dbg!(&full_endpoints, &endpoint_tree);
     let yaml_route_data = route.get_ref();
     let request_client = request_client.get_ref();
     let endpoint_yaml_data = get_endpoint_data_yaml(&endpoint_tree, yaml_route_data);

@@ -27,13 +27,14 @@ pub struct Route {
 
 #[derive(Deserialize, Default, Serialize, Debug, PartialEq, Clone)]
 pub struct Auth {
-    pub auth_required: bool,
+    pub full_auth_lockdown: bool,
     pub authorized_roles: Vec<String>,
 }
 
 #[derive(Deserialize, Default, Serialize, Debug, PartialEq, Clone)]
 pub struct Endpoint {
     pub endpoint_path: String,
+    pub auth_required: bool,
     pub authorized_roles: Vec<String>,
     pub cached: bool,
     pub expiration_time_seconds: Option<u64>,
