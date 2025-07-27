@@ -177,7 +177,11 @@ export async function login(): Promise<User | null> {
         return login();
       }
     }
-    const obj = await res.json();
+    const obj: User = await res.json();
+
+    obj.schoolId = obj.schoolId || 1;
+    obj.email = obj.userName + "@gmail.com";
+    obj.isAdmin = obj.isAdmin || true;
 
     return obj;
   } catch (err) {
@@ -185,19 +189,6 @@ export async function login(): Promise<User | null> {
   }
 
   return null;
-
-  //check if jwt is expired -> use refresh token -> get user Id somehow -> /api/user/{id} -> return User
-
-  /*return {
-        id: "admin_1",
-        email: "admin@example.com",
-        firstName: "Admin",
-        lastName: "User",
-        schoolId: 1,
-        createdAt: null,
-        updatedAt: null,
-        isAdmin: true
-    };*/
 }
 
 export const getSchoolDisplayString = (school: School): string => {
